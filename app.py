@@ -315,88 +315,78 @@ if st.session_state.game_state == 'setup':
         # 문제 개수 설정
         st.markdown("**📊 문제 개수**")
         
-        # CSS로 강제 가로 배치
+        # 공통 스타일
         st.markdown("""
         <style>
-        .question-controls {
+        .control-container {
             display: flex !important;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin: 15px 0;
+            gap: 20px;
+            margin: 20px 0;
         }
-        .question-controls > div {
-            flex: none !important;
-        }
-        .question-controls button {
+        
+        .control-button {
             width: 50px !important;
             height: 50px !important;
-            min-width: 50px !important;
-            border-radius: 10px !important;
-            font-size: 20px !important;
+            background: #f0f2f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            transition: background-color 0.2s;
         }
-        .question-display {
+        
+        .control-button:hover {
+            background: #e0e2e6;
+        }
+        
+        .control-display {
             min-width: 80px;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            padding: 15px;
             color: white;
-            background: transparent;
-            border: none;
-            margin: 0 10px;
+            padding: 10px;
         }
         
-        /* Streamlit 컬럼을 flexbox로 변경 */
-        .stColumn > div {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
+        /* 숨겨진 버튼들을 완전히 숨김 */
+        .hidden-buttons {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            overflow: hidden !important;
         }
         </style>
         """, unsafe_allow_html=True)
         
-        # 더 간단한 구조로 변경
+        # 문제 개수 컨트롤
         st.markdown(f"""
-        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0;">
-            <div id="question-minus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
-                ➖
-            </div>
-            <div style="min-width: 60px; text-align: center; font-size: 18px; font-weight: bold; color: white;">
-                {st.session_state.question_count}개
-            </div>
-            <div id="question-plus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
-                ➕
-            </div>
+        <div class="control-container">
+            <div class="control-button" onclick="decreaseQuestions()">➖</div>
+            <div class="control-display">{st.session_state.question_count}개</div>
+            <div class="control-button" onclick="increaseQuestions()">➕</div>
         </div>
         """, unsafe_allow_html=True)
         
         # 숨겨진 실제 버튼들
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("minus", key="question_minus_real", help="decrease"):
-                if st.session_state.question_count > 5:
-                    st.session_state.question_count -= 1
-                    st.rerun()
-        with col2:
-            if st.button("plus", key="question_plus_real", help="increase"):
-                if st.session_state.question_count < 20:
-                    st.session_state.question_count += 1
-                    st.rerun()
-        
-        # JavaScript로 클릭 연결
-        st.markdown("""
-        <script>
-        document.getElementById('question-minus').onclick = function() {
-            const buttons = parent.document.querySelectorAll('button[title="decrease"]');
-            if (buttons.length > 0) buttons[0].click();
-        };
-        document.getElementById('question-plus').onclick = function() {
-            const buttons = parent.document.querySelectorAll('button[title="increase"]');
-            if (buttons.length > 0) buttons[0].click();
-        };
-        </script>
-        """, unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<div class="hidden-buttons">', unsafe_allow_html=True)
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("", key="question_minus", help="decrease_q"):
+                    if st.session_state.question_count > 5:
+                        st.session_state.question_count -= 1
+                        st.rerun()
+            with col_b:
+                if st.button("", key="question_plus", help="increase_q"):
+                    if st.session_state.question_count < 20:
+                        st.session_state.question_count += 1
+                        st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         
@@ -404,43 +394,51 @@ if st.session_state.game_state == 'setup':
         st.markdown("**⏰ 제한시간**")
         
         st.markdown(f"""
-        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0;">
-            <div id="time-minus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
-                ➖
-            </div>
-            <div style="min-width: 60px; text-align: center; font-size: 18px; font-weight: bold; color: white;">
-                {st.session_state.time_limit}초
-            </div>
-            <div id="time-plus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
-                ➕
-            </div>
+        <div class="control-container">
+            <div class="control-button" onclick="decreaseTime()">➖</div>
+            <div class="control-display">{st.session_state.time_limit}초</div>
+            <div class="control-button" onclick="increaseTime()">➕</div>
         </div>
         """, unsafe_allow_html=True)
         
         # 숨겨진 실제 버튼들
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("time_minus", key="time_minus_real", help="time_decrease"):
-                if st.session_state.time_limit > 3:
-                    st.session_state.time_limit -= 1
-                    st.rerun()
-        with col2:
-            if st.button("time_plus", key="time_plus_real", help="time_increase"):
-                if st.session_state.time_limit < 10:
-                    st.session_state.time_limit += 1
-                    st.rerun()
+        with st.container():
+            st.markdown('<div class="hidden-buttons">', unsafe_allow_html=True)
+            col_c, col_d = st.columns(2)
+            with col_c:
+                if st.button("", key="time_minus", help="decrease_t"):
+                    if st.session_state.time_limit > 3:
+                        st.session_state.time_limit -= 1
+                        st.rerun()
+            with col_d:
+                if st.button("", key="time_plus", help="increase_t"):
+                    if st.session_state.time_limit < 10:
+                        st.session_state.time_limit += 1
+                        st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # JavaScript로 클릭 연결
         st.markdown("""
         <script>
-        document.getElementById('time-minus').onclick = function() {
-            const buttons = parent.document.querySelectorAll('button[title="time_decrease"]');
+        function decreaseQuestions() {
+            const buttons = parent.document.querySelectorAll('button[title="decrease_q"]');
             if (buttons.length > 0) buttons[0].click();
-        };
-        document.getElementById('time-plus').onclick = function() {
-            const buttons = parent.document.querySelectorAll('button[title="time_increase"]');
+        }
+        
+        function increaseQuestions() {
+            const buttons = parent.document.querySelectorAll('button[title="increase_q"]');
             if (buttons.length > 0) buttons[0].click();
-        };
+        }
+        
+        function decreaseTime() {
+            const buttons = parent.document.querySelectorAll('button[title="decrease_t"]');
+            if (buttons.length > 0) buttons[0].click();
+        }
+        
+        function increaseTime() {
+            const buttons = parent.document.querySelectorAll('button[title="increase_t"]');
+            if (buttons.length > 0) buttons[0].click();
+        }
         </script>
         """, unsafe_allow_html=True)
         
