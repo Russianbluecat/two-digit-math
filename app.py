@@ -314,7 +314,7 @@ if st.session_state.game_state == 'setup':
         # 문제 개수 설정
         st.markdown("**📊 문제 개수**")
         
-        # CSS로 강제 가로 배치
+         # CSS로 강제 가로 배치
         st.markdown("""
         <style>
         .question-controls {
@@ -325,8 +325,7 @@ if st.session_state.game_state == 'setup':
             margin: 15px 0;
         }
         .question-controls > div {
-            flex: 1 1 0;
-            min-width: 50px;
+            flex: none !important;
         }
         .question-controls button {
             width: 50px !important;
@@ -336,16 +335,16 @@ if st.session_state.game_state == 'setup':
             font-size: 20px !important;
         }
         .question-display {
-            min-width: 48px;
-            width: 100%;
+            min-width: 56px;
+            width: 70%;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
             padding: 14px;
-            background: black;
-            color: white;
+            background: black; /* 배경색을 검정색으로 변경 */
+            color: white; /* 글자색을 흰색으로 변경 */
             border-radius: 10px;
-            margin: 0 10px;
+            margin: 0 auto;
         }
         </style>
         """, unsafe_allow_html=True)
