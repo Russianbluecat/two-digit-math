@@ -124,7 +124,8 @@ def reset_game():
     st.session_state.start_time = None
 
 # 메인 UI
-st.markdown("<h1 style='text-align: center;'>🧮 두 자리 수 암산 게임</h1>", unsafe_allow_html=True)
+# 제목 크기를 80%로 조정 (기존 h1 대신 h2 사용)
+st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -205,15 +206,22 @@ elif st.session_state.game_state == 'playing':
     current_q_idx = st.session_state.current_question - 1
     num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
     
-    # 점수 표시
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("문제", f"{st.session_state.current_question}/{len(st.session_state.questions)}")
-    with col2:
-        st.metric("정답", f"{st.session_state.correct_count}")
-    with col3:
-        accuracy = (st.session_state.correct_count / (st.session_state.current_question - 1) * 100) if st.session_state.current_question > 1 else 0
-        st.metric("정답률", f"{accuracy:.1f}%")
+    # 점수 표시 - 오른쪽 정렬로 변경하고 폰트 크기 조정
+    accuracy = (st.session_state.correct_count / (st.session_state.current_question - 1) * 100) if st.session_state.current_question > 1 else 0
+    
+    st.markdown(f"""
+    <div style='text-align: right; margin-bottom: 20px;'>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 5px;'>
+            문제: <span style='font-weight: bold; color: #333;'>{st.session_state.current_question}/{len(st.session_state.questions)}</span>
+        </div>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 5px;'>
+            정답: <span style='font-weight: bold; color: #333;'>{st.session_state.correct_count}</span>
+        </div>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 5px;'>
+            정답률: <span style='font-weight: bold; color: #333;'>{accuracy:.1f}%</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
     
