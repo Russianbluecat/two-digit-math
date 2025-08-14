@@ -336,11 +336,11 @@ if st.session_state.game_state == 'setup':
             font-size: 20px !important;
         }
         .question-display {
-            min-width: 50px;
+            min-width: 40px;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            padding: 15px;
+            padding: 14px;
             background: black; /* 배경색을 검정색으로 변경 */
             color: white; /* 글자색을 흰색으로 변경 */
             border-radius: 10px;
