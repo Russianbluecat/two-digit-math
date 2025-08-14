@@ -230,7 +230,7 @@ elif st.session_state.game_state == 'playing':
             else:
                 st.error(f"❌ {message}")
             
-            time.sleep(1.5)  # 1.5초 대기 (메시지 읽을 시간)
+            time.sleep(1.0)  # 1초 대기 (메시지 읽을 시간)
             next_question()
             st.rerun()
     
