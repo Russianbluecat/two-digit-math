@@ -336,8 +336,8 @@ if st.session_state.game_state == 'setup':
             font-size: 20px !important;
         }
         .question-display {
-            min-width: 56px;
-            width: 70%;
+            min-width: 48px;
+            width: 60%;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
