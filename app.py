@@ -131,69 +131,64 @@ st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 
 if st.session_state.game_state == 'setup':
     st.markdown("### 🎯 게임 설정")
     
-    # 사이드바에서 설정
-    with st.sidebar:
-        st.markdown("### ⚙️ 설정")
+    # 세션 상태 초기화
+    if 'question_count' not in st.session_state:
+        st.session_state.question_count = 10
+    if 'time_limit' not in st.session_state:
+        st.session_state.time_limit = 5
+    
+    # 메인 화면에서 설정
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col2:
+        # 연산 타입 선택
         operation_type = st.selectbox(
-            "연산 타입 선택",
+            "📝 연산 타입",
             ["덧셈", "뺄셈", "랜덤 (덧셈+뺄셈)"]
         )
         
-        # 문제 개수 설정 (버튼으로)
-        st.markdown("**문제 개수**")
-        col1, col2, col3 = st.columns([1, 2, 1])
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        if 'question_count' not in st.session_state:
-            st.session_state.question_count = 10
-            
-        with col1:
+        # 문제 개수 설정
+        st.markdown("**📊 문제 개수**")
+        col_q1, col_q2, col_q3 = st.columns([1, 2, 1])
+        
+        with col_q1:
             if st.button("➖", key="question_minus"):
                 if st.session_state.question_count > 5:
                     st.session_state.question_count -= 1
                     st.rerun()
-        with col2:
+        with col_q2:
             st.markdown(f"<div style='text-align: center; padding: 8px; font-size: 18px; font-weight: bold;'>{st.session_state.question_count}개</div>", unsafe_allow_html=True)
-        with col3:
+        with col_q3:
             if st.button("➕", key="question_plus"):
                 if st.session_state.question_count < 20:
                     st.session_state.question_count += 1
                     st.rerun()
         
-        # 제한시간 설정 (버튼으로)
-        st.markdown("**제한시간 (초)**")
-        col1, col2, col3 = st.columns([1, 2, 1])
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        if 'time_limit' not in st.session_state:
-            st.session_state.time_limit = 5
-            
-        with col1:
+        # 제한시간 설정
+        st.markdown("**⏰ 제한시간**")
+        col_t1, col_t2, col_t3 = st.columns([1, 2, 1])
+        
+        with col_t1:
             if st.button("➖", key="time_minus"):
                 if st.session_state.time_limit > 3:
                     st.session_state.time_limit -= 1
                     st.rerun()
-        with col2:
+        with col_t2:
             st.markdown(f"<div style='text-align: center; padding: 8px; font-size: 18px; font-weight: bold;'>{st.session_state.time_limit}초</div>", unsafe_allow_html=True)
-        with col3:
+        with col_t3:
             if st.button("➕", key="time_plus"):
                 if st.session_state.time_limit < 10:
                     st.session_state.time_limit += 1
                     st.rerun()
         
-        question_count = st.session_state.question_count
-        time_limit = st.session_state.time_limit
-    
-    # 메인 화면
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown(f"""
-        **선택된 설정:**
-        - 연산 타입: **{operation_type}**
-        - 문제 개수: **{question_count}개**
-        - 제한시간: **{time_limit}초**
-        """)
+        st.markdown("<br><br>", unsafe_allow_html=True)
         
+        # 게임 시작 버튼
         if st.button("🚀 게임 시작!", use_container_width=True, type="primary"):
-            start_game(operation_type, question_count)
+            start_game(operation_type, st.session_state.question_count)
             st.rerun()
 
 # 게임 진행 단계
