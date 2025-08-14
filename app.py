@@ -10,7 +10,6 @@ from urllib.parse import quote
 # Google Analytics 추가
 def add_google_analytics():
     ga_code = """
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Q1S1M127P"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -53,7 +52,7 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         # 저장할 데이터
         row_data = [
             date_str,
-            time_str, 
+            time_str,
             total_questions,
             correct_count,
             f"{accuracy:.1f}%",
@@ -326,7 +325,8 @@ if st.session_state.game_state == 'setup':
             margin: 15px 0;
         }
         .question-controls > div {
-            flex: none !important;
+            flex: 1 1 0;
+            min-width: 50px;
         }
         .question-controls button {
             width: 50px !important;
@@ -337,70 +337,65 @@ if st.session_state.game_state == 'setup':
         }
         .question-display {
             min-width: 48px;
-            width: 60%;
+            width: 100%;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
             padding: 14px;
-            background: black; /* 배경색을 검정색으로 변경 */
-            color: white; /* 글자색을 흰색으로 변경 */
+            background: black;
+            color: white;
             border-radius: 10px;
             margin: 0 10px;
         }
         </style>
         """, unsafe_allow_html=True)
         
-        col_q1, col_q2, col_q3 = st.columns([1, 1, 1])
-        
-        # CSS 클래스 적용을 위한 컨테이너
-        container = st.container()
-        with container:
-            cols = st.columns([1, 2, 1])
-            
-            with cols[0]:
-                if st.button("➖", key="question_minus"):
-                    if st.session_state.question_count > 5:
-                        st.session_state.question_count -= 1
-                        st.rerun()
-            
-            with cols[1]:
-                st.markdown(f"""
-                <div class="question-display">
-                    {st.session_state.question_count}개
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with cols[2]:
-                if st.button("➕", key="question_plus"):
-                    if st.session_state.question_count < 20:
-                        st.session_state.question_count += 1
-                        st.rerun()
+        # 문제 개수 설정 UI
+        st.markdown('<div class="question-controls">', unsafe_allow_html=True)
+        cols = st.columns([1, 2, 1])
+        with cols[0]:
+            if st.button("➖", key="question_minus"):
+                if st.session_state.question_count > 5:
+                    st.session_state.question_count -= 1
+                    st.rerun()
+        with cols[1]:
+            st.markdown(f"""
+            <div class="question-display">
+                {st.session_state.question_count}개
+            </div>
+            """, unsafe_allow_html=True)
+        with cols[2]:
+            if st.button("➕", key="question_plus"):
+                if st.session_state.question_count < 20:
+                    st.session_state.question_count += 1
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         
         # 제한시간 설정
         st.markdown("**⏰ 제한시간**")
         
+        # 제한시간 설정 UI
+        st.markdown('<div class="question-controls">', unsafe_allow_html=True)
         cols = st.columns([1, 2, 1])
-        
         with cols[0]:
             if st.button("➖", key="time_minus"):
                 if st.session_state.time_limit > 3:
                     st.session_state.time_limit -= 1
                     st.rerun()
-        
         with cols[1]:
             st.markdown(f"""
             <div class="question-display">
                 {st.session_state.time_limit}초
             </div>
             """, unsafe_allow_html=True)
-        
         with cols[2]:
             if st.button("➕", key="time_plus"):
                 if st.session_state.time_limit < 10:
                     st.session_state.time_limit += 1
                     st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown("<br><br>", unsafe_allow_html=True)
         
