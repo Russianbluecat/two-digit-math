@@ -44,7 +44,7 @@ except:
 def save_game_result(total_questions, correct_count, accuracy, operation_type, time_limit, elapsed_time):
     """게임 결과를 Google Sheets에 저장"""
     try:
-        # 현재 시간
+        # 현재 시간 (한국 시간으로 조정)
         now = datetime.now()
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M:%S")
@@ -72,10 +72,27 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
             "values": [row_data]
         }
         
+        # POST 요청 보내기
         response = requests.post(sheet_url, params=params, json=data)
-        return response.status_code == 200
+        
+        if response.status_code == 200:
+            st.success("✅ 결과가 성공적으로 저장되었습니다!")
+            return True
+        else:
+            st.error(f"❌ 저장 실패: HTTP {response.status_code}")
+            # 에러 세부사항 출력 (디버깅용)
+            try:
+                error_detail = response.json()
+                st.error(f"상세 오류: {error_detail}")
+            except:
+                st.error(f"응답 내용: {response.text}")
+            return False
+            
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ 네트워크 오류: {str(e)}")
+        return False
     except Exception as e:
-        st.error(f"데이터 저장 중 오류가 발생했습니다: {e}")
+        st.error(f"❌ 데이터 저장 중 오류가 발생했습니다: {str(e)}")
         return False
 
 def get_global_statistics():
@@ -87,10 +104,12 @@ def get_global_statistics():
         
         response = requests.get(sheet_url, params=params)
         if response.status_code != 200:
+            st.warning(f"통계 데이터를 불러올 수 없습니다: HTTP {response.status_code}")
             return None
             
         data = response.json()
         if 'values' not in data or len(data['values']) < 2:
+            st.info("아직 충분한 통계 데이터가 없습니다.")
             return None
             
         # 첫 번째 행은 헤더, 나머지는 데이터
@@ -128,10 +147,15 @@ def get_global_statistics():
             'good_rate': (good_count / total_games) * 100,
             'okay_count': okay_count,
             'okay_rate': (okay_count / total_games) * 100,
-            'accuracy_list': accuracy_list
+            'accuracy_list': accuracy_list,
+            'average_accuracy': sum(accuracy_list) / len(accuracy_list)
         }
+        
+    except requests.exceptions.RequestException as e:
+        st.warning(f"네트워크 오류로 통계를 불러올 수 없습니다: {str(e)}")
+        return None
     except Exception as e:
-        st.error(f"통계 조회 중 오류가 발생했습니다: {e}")
+        st.warning(f"통계 조회 중 오류가 발생했습니다: {str(e)}")
         return None
 
 def get_user_rank(user_accuracy, accuracy_list):
@@ -260,15 +284,16 @@ def next_question():
         accuracy = (st.session_state.correct_count / total_questions) * 100
         elapsed_time = time.time() - st.session_state.start_time
         
-        # Google Sheets에 저장
-        save_game_result(
-            total_questions,
-            st.session_state.correct_count,
-            accuracy,
-            st.session_state.get('operation_type', '랜덤'),
-            st.session_state.get('time_limit', 5),
-            elapsed_time
-        )
+        # Google Sheets에 저장 (비동기적으로 처리)
+        with st.spinner("결과를 저장하는 중..."):
+            save_success = save_game_result(
+                total_questions,
+                st.session_state.correct_count,
+                accuracy,
+                st.session_state.get('operation_type', '랜덤'),
+                st.session_state.get('time_limit', 5),
+                elapsed_time
+            )
         
         # 로컬 통계도 업데이트 (백업용)
         st.session_state.total_games += 1
@@ -518,6 +543,9 @@ elif st.session_state.game_state == 'finished':
             <div style='text-align: center; margin-bottom: 15px;'>
                 <div style='font-size: 1.1rem; color: #333; font-weight: bold; margin-bottom: 15px;'>
                     🌟 지금까지 총 <span style='color: #1f77b4; font-size: 1.3rem;'>{global_stats['total_games']:,}명</span>이 도전했습니다!
+                </div>
+                <div style='font-size: 0.9rem; color: #666; margin-bottom: 10px;'>
+                    📈 전체 평균 정답률: <span style='font-weight: bold; color: #333;'>{global_stats['average_accuracy']:.1f}%</span>
                 </div>
             </div>
             
