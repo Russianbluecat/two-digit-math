@@ -56,6 +56,7 @@ def start_game(operation_type, question_count):
     st.session_state.correct_count = 0
     st.session_state.questions = []
     st.session_state.user_answer = ""
+    st.session_state.question_start_time = time.time()  # 첫 문제 시작 시간
     
     # 모든 문제 미리 생성
     for _ in range(question_count):
@@ -65,8 +66,15 @@ def start_game(operation_type, question_count):
     st.session_state.start_time = time.time()
 
 def check_answer():
-    """답안 체크"""
+    """답안 체크 (시간 제한 포함)"""
     try:
+        # 시간 체크
+        current_time = time.time()
+        if 'question_start_time' in st.session_state:
+            elapsed_time = current_time - st.session_state.question_start_time
+            if elapsed_time > 5:  # 5초 초과
+                return False, "⏰ 5초가 지났습니다! 다음 문제로 넘어갑니다."
+        
         user_input = int(st.session_state.user_answer)
         current_q_idx = st.session_state.current_question - 1
         correct_answer = st.session_state.questions[current_q_idx][3]
@@ -83,6 +91,7 @@ def next_question():
     """다음 문제로"""
     st.session_state.current_question += 1
     st.session_state.user_answer = ""
+    st.session_state.question_start_time = time.time()  # 새 문제 시작 시간 기록
     
     if st.session_state.current_question > len(st.session_state.questions):
         st.session_state.game_state = 'finished'
@@ -97,7 +106,7 @@ def reset_game():
     st.session_state.start_time = None
 
 # 메인 UI
-st.title("🧮 두 자리 수 암산 게임")
+st.markdown("<h1 style='text-align: center;'>🧮 두 자리 수 암산 게임</h1>", unsafe_allow_html=True)
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -168,6 +177,15 @@ elif st.session_state.game_state == 'playing':
     st.markdown(f"## {num1} {operator} {num2} = ?")
     
     # 답 입력
+    # 경과 시간 표시
+    if 'question_start_time' in st.session_state:
+        elapsed = time.time() - st.session_state.question_start_time
+        remaining = max(0, 5 - elapsed)
+        if remaining > 0:
+            st.markdown(f"### ⏰ 남은 시간: {remaining:.1f}초")
+        else:
+            st.markdown("### ⏰ 시간 초과!")
+    
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input("답을 입력하세요:", key="answer_input")
         submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
@@ -176,12 +194,14 @@ elif st.session_state.game_state == 'playing':
             st.session_state.user_answer = user_input
             is_correct, message = check_answer()
             
-            if is_correct:
+            if "5초가 지났습니다" in message:
+                st.warning(f"⏰ {message}")
+            elif is_correct:
                 st.success(f"✅ {message}")
             else:
                 st.error(f"❌ {message}")
             
-            time.sleep(1)  # 1초 대기
+            time.sleep(1.5)  # 1.5초 대기 (메시지 읽을 시간)
             next_question()
             st.rerun()
     
@@ -220,15 +240,15 @@ elif st.session_state.game_state == 'finished':
     
     # 성적에 따른 메시지
     if accuracy == 100:
-        st.success("🏆 완벽합니다! 천재군요!")
+        st.markdown("<div style='text-align: center;'><h3 style='color: green;'>🏆 완벽합니다! 천재군요!</h3></div>", unsafe_allow_html=True)
     elif accuracy >= 80:
-        st.success("🌟 훌륭해요!")
+        st.markdown("<div style='text-align: center;'><h3 style='color: green;'>🌟 훌륭해요!</h3></div>", unsafe_allow_html=True)
     elif accuracy >= 60:
-        st.info("👍 잘했어요!")
+        st.markdown("<div style='text-align: center;'><h3 style='color: blue;'>👍 잘했어요!</h3></div>", unsafe_allow_html=True)
     elif accuracy >= 40:
-        st.warning("💪 조금만 더 연습하면 완벽해질 거예요!")
+        st.markdown("<div style='text-align: center;'><h3 style='color: orange;'>💪 조금만 더 연습하면 완벽해질 거예요!</h3></div>", unsafe_allow_html=True)
     else:
-        st.error("📚 더 연습해보세요!")
+        st.markdown("<div style='text-align: center;'><h3 style='color: red;'>📚 더 연습해보세요!</h3></div>", unsafe_allow_html=True)
     
     # 다시하기 버튼
     col1, col2 = st.columns(2)
