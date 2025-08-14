@@ -72,8 +72,9 @@ def check_answer():
         current_time = time.time()
         if 'question_start_time' in st.session_state:
             elapsed_time = current_time - st.session_state.question_start_time
-            if elapsed_time > 5:  # 5초 초과
-                return False, "⏰ 5초가 지났습니다! 다음 문제로 넘어갑니다."
+            time_limit = st.session_state.get('time_limit', 5)
+            if elapsed_time > time_limit:  # 설정된 시간 초과
+                return False, f"⏰ {time_limit}초가 지났습니다! 다음 문제로 넘어갑니다."
         
         user_input = int(st.session_state.user_answer)
         current_q_idx = st.session_state.current_question - 1
@@ -120,21 +121,48 @@ if st.session_state.game_state == 'setup':
             ["덧셈", "뺄셈", "랜덤 (덧셈+뺄셈)"]
         )
         
-        question_count = st.slider(
-            "문제 개수",
-            min_value=5,
-            max_value=20,
-            value=10,
-            step=1
-        )
+        # 문제 개수 설정 (버튼으로)
+        st.markdown("**문제 개수**")
+        col1, col2, col3 = st.columns([1, 2, 1])
         
-        time_limit = st.slider(
-            "제한시간 (초)",
-            min_value=3,
-            max_value=10,
-            value=5,
-            step=1
-        )
+        if 'question_count' not in st.session_state:
+            st.session_state.question_count = 10
+            
+        with col1:
+            if st.button("➖", key="question_minus"):
+                if st.session_state.question_count > 5:
+                    st.session_state.question_count -= 1
+                    st.rerun()
+        with col2:
+            st.markdown(f"<div style='text-align: center; padding: 8px; font-size: 18px; font-weight: bold;'>{st.session_state.question_count}개</div>", unsafe_allow_html=True)
+        with col3:
+            if st.button("➕", key="question_plus"):
+                if st.session_state.question_count < 20:
+                    st.session_state.question_count += 1
+                    st.rerun()
+        
+        # 제한시간 설정 (버튼으로)
+        st.markdown("**제한시간 (초)**")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        if 'time_limit' not in st.session_state:
+            st.session_state.time_limit = 5
+            
+        with col1:
+            if st.button("➖", key="time_minus"):
+                if st.session_state.time_limit > 3:
+                    st.session_state.time_limit -= 1
+                    st.rerun()
+        with col2:
+            st.markdown(f"<div style='text-align: center; padding: 8px; font-size: 18px; font-weight: bold;'>{st.session_state.time_limit}초</div>", unsafe_allow_html=True)
+        with col3:
+            if st.button("➕", key="time_plus"):
+                if st.session_state.time_limit < 10:
+                    st.session_state.time_limit += 1
+                    st.rerun()
+        
+        question_count = st.session_state.question_count
+        time_limit = st.session_state.time_limit
     
     # 메인 화면
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -180,7 +208,8 @@ elif st.session_state.game_state == 'playing':
     # 경과 시간 표시
     if 'question_start_time' in st.session_state:
         elapsed = time.time() - st.session_state.question_start_time
-        remaining = max(0, 5 - elapsed)
+        time_limit = st.session_state.get('time_limit', 5)  # 세션에서 제한시간 가져오기
+        remaining = max(0, time_limit - elapsed)
         if remaining > 0:
             st.markdown(f"### ⏰ 남은 시간: {remaining:.1f}초")
         else:
@@ -194,7 +223,7 @@ elif st.session_state.game_state == 'playing':
             st.session_state.user_answer = user_input
             is_correct, message = check_answer()
             
-            if "5초가 지났습니다" in message:
+            if "초가 지났습니다" in message:
                 st.warning(f"⏰ {message}")
             elif is_correct:
                 st.success(f"✅ {message}")
