@@ -288,8 +288,8 @@ def reset_game():
     st.session_state.user_answer = ""
     st.session_state.start_time = None
 
-# 메인 UI
-st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
+# 메인 UI (상단 여백 제거)
+st.markdown("<h2 style='text-align: center; font-size: 1.8rem; margin-top: -50px;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -341,64 +341,108 @@ if st.session_state.game_state == 'setup':
             font-size: 18px;
             font-weight: bold;
             padding: 15px;
-            background: #f0f2f6;
-            border-radius: 10px;
+            color: white;
+            background: transparent;
+            border: none;
             margin: 0 10px;
+        }
+        
+        /* Streamlit 컬럼을 flexbox로 변경 */
+        .stColumn > div {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
         </style>
         """, unsafe_allow_html=True)
         
-        col_q1, col_q2, col_q3 = st.columns([1, 1, 1])
+        # 더 간단한 구조로 변경
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0;">
+            <div id="question-minus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
+                ➖
+            </div>
+            <div style="min-width: 60px; text-align: center; font-size: 18px; font-weight: bold; color: white;">
+                {st.session_state.question_count}개
+            </div>
+            <div id="question-plus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
+                ➕
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # CSS 클래스 적용을 위한 컨테이너
-        container = st.container()
-        with container:
-            cols = st.columns([1, 2, 1])
-            
-            with cols[0]:
-                if st.button("➖", key="question_minus"):
-                    if st.session_state.question_count > 5:
-                        st.session_state.question_count -= 1
-                        st.rerun()
-            
-            with cols[1]:
-                st.markdown(f"""
-                <div class="question-display">
-                    {st.session_state.question_count}개
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with cols[2]:
-                if st.button("➕", key="question_plus"):
-                    if st.session_state.question_count < 20:
-                        st.session_state.question_count += 1
-                        st.rerun()
+        # 숨겨진 실제 버튼들
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("minus", key="question_minus_real", help="decrease"):
+                if st.session_state.question_count > 5:
+                    st.session_state.question_count -= 1
+                    st.rerun()
+        with col2:
+            if st.button("plus", key="question_plus_real", help="increase"):
+                if st.session_state.question_count < 20:
+                    st.session_state.question_count += 1
+                    st.rerun()
+        
+        # JavaScript로 클릭 연결
+        st.markdown("""
+        <script>
+        document.getElementById('question-minus').onclick = function() {
+            const buttons = parent.document.querySelectorAll('button[title="decrease"]');
+            if (buttons.length > 0) buttons[0].click();
+        };
+        document.getElementById('question-plus').onclick = function() {
+            const buttons = parent.document.querySelectorAll('button[title="increase"]');
+            if (buttons.length > 0) buttons[0].click();
+        };
+        </script>
+        """, unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         
         # 제한시간 설정
         st.markdown("**⏰ 제한시간**")
         
-        cols = st.columns([1, 2, 1])
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0;">
+            <div id="time-minus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
+                ➖
+            </div>
+            <div style="min-width: 60px; text-align: center; font-size: 18px; font-weight: bold; color: white;">
+                {st.session_state.time_limit}초
+            </div>
+            <div id="time-plus" style="width: 50px; height: 50px; background: #f0f2f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 1px solid #ddd;">
+                ➕
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        with cols[0]:
-            if st.button("➖", key="time_minus"):
+        # 숨겨진 실제 버튼들
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("time_minus", key="time_minus_real", help="time_decrease"):
                 if st.session_state.time_limit > 3:
                     st.session_state.time_limit -= 1
                     st.rerun()
-        
-        with cols[1]:
-            st.markdown(f"""
-            <div class="question-display">
-                {st.session_state.time_limit}초
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with cols[2]:
-            if st.button("➕", key="time_plus"):
+        with col2:
+            if st.button("time_plus", key="time_plus_real", help="time_increase"):
                 if st.session_state.time_limit < 10:
                     st.session_state.time_limit += 1
                     st.rerun()
+        
+        # JavaScript로 클릭 연결
+        st.markdown("""
+        <script>
+        document.getElementById('time-minus').onclick = function() {
+            const buttons = parent.document.querySelectorAll('button[title="time_decrease"]');
+            if (buttons.length > 0) buttons[0].click();
+        };
+        document.getElementById('time-plus').onclick = function() {
+            const buttons = parent.document.querySelectorAll('button[title="time_increase"]');
+            if (buttons.length > 0) buttons[0].click();
+        };
+        </script>
+        """, unsafe_allow_html=True)
         
         st.markdown("<br><br>", unsafe_allow_html=True)
         
