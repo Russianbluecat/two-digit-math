@@ -2,36 +2,34 @@ import streamlit as st
 import random
 import time
 
-# 페이지 설정
+# --- 세션 상태 초기화 ---
+# 앱이 재실행될 때마다 항상 실행되어 상태를 보장합니다.
+if 'game_state' not in st.session_state:
+    st.session_state.game_state = 'setup'
+if 'current_question' not in st.session_state:
+    st.session_state.current_question = 1
+if 'correct_count' not in st.session_state:
+    st.session_state.correct_count = 0
+if 'questions' not in st.session_state:
+    st.session_state.questions = []
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = None
+if 'user_answer' not in st.session_state:
+    st.session_state.user_answer = ""
+if 'question_count' not in st.session_state:
+    st.session_state.question_count = 10
+if 'time_limit' not in st.session_state:
+    st.session_state.time_limit = 5
+
+# --- 페이지 설정 ---
 st.set_page_config(
     page_title="두 자리 수 암산 게임",
     page_icon="🧮",
     layout="centered"
 )
 
-# --- 세션 상태 초기화 함수 ---
-def initialize_session_state():
-    """앱 실행 시 필요한 세션 상태를 초기화합니다."""
-    if 'game_state' not in st.session_state:
-        st.session_state.game_state = 'setup'  # setup, playing, finished
-    if 'current_question' not in st.session_state:
-        st.session_state.current_question = 1
-    if 'correct_count' not in st.session_state:
-        st.session_state.correct_count = 0
-    if 'questions' not in st.session_state:
-        st.session_state.questions = []
-    if 'start_time' not in st.session_state:
-        st.session_state.start_time = None
-    if 'user_answer' not in st.session_state:
-        st.session_state.user_answer = ""
-    if 'question_count' not in st.session_state:
-        st.session_state.question_count = 10
-    if 'time_limit' not in st.session_state:
-        st.session_state.time_limit = 5
-
 # --- 게임 로직 함수 ---
 def generate_question(operation_type):
-    """문제(num1, num2, 연산자, 정답)를 생성합니다."""
     num1 = random.randint(10, 99)
     num2 = random.randint(10, 99)
     
@@ -43,7 +41,7 @@ def generate_question(operation_type):
             num1, num2 = num2, num1
         operator = "-"
         answer = num1 - num2
-    else:  # "랜덤"
+    else:
         if random.choice([True, False]):
             operator = "+"
             answer = num1 + num2
@@ -56,7 +54,6 @@ def generate_question(operation_type):
     return num1, num2, operator, answer
 
 def start_game(operation_type, question_count):
-    """게임 시작 상태로 전환하고 문제를 생성합니다."""
     st.session_state.game_state = 'playing'
     st.session_state.current_question = 1
     st.session_state.correct_count = 0
@@ -67,7 +64,6 @@ def start_game(operation_type, question_count):
     st.session_state.start_time = time.time()
 
 def check_answer():
-    """사용자의 답안을 확인하고 결과를 반환합니다."""
     try:
         if time.time() - st.session_state.question_start_time > st.session_state.time_limit:
             return False, f"⏰ {st.session_state.time_limit}초가 지났습니다! 다음 문제로 넘어갑니다."
@@ -84,7 +80,6 @@ def check_answer():
         return False, "숫자를 입력해주세요!"
 
 def next_question():
-    """다음 문제로 넘어가거나 게임을 종료합니다."""
     st.session_state.current_question += 1
     st.session_state.user_answer = ""
     st.session_state.question_start_time = time.time()
@@ -93,7 +88,6 @@ def next_question():
         st.session_state.game_state = 'finished'
 
 def reset_game():
-    """게임을 초기 설정 상태로 되돌립니다."""
     st.session_state.game_state = 'setup'
     st.session_state.current_question = 1
     st.session_state.correct_count = 0
@@ -102,37 +96,19 @@ def reset_game():
     st.session_state.start_time = None
 
 # --- UI/UX 헬퍼 함수 ---
-def add_google_analytics():
-    """Google Analytics 코드를 삽입합니다."""
-    ga_code = """
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Q1S1M127P"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-4Q1S1M127P');
-    </script>
-    """
-    st.markdown(ga_code, unsafe_allow_html=True)
-
 def update_question_count(delta):
-    """문제 개수를 업데이트합니다."""
     new_count = st.session_state.question_count + delta
     if 5 <= new_count <= 20:
         st.session_state.question_count = new_count
         st.rerun()
 
 def update_time_limit(delta):
-    """제한 시간을 업데이트합니다."""
     new_limit = st.session_state.time_limit + delta
     if 3 <= new_limit <= 10:
         st.session_state.time_limit = new_limit
         st.rerun()
-
+        
 # --- 메인 앱 실행 ---
-initialize_session_state()
-add_google_analytics()
-
 st.markdown("<h2 style='text-align: center; font-size: 1.8rem; margin-top: -50px;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
 # 게임 설정 단계
@@ -188,7 +164,6 @@ if st.session_state.game_state == 'setup':
         </style>
         """, unsafe_allow_html=True)
         
-        # 문제 개수 컨트롤 UI (버튼 테두리 문제 해결)
         st.markdown(f"""
         <div class="control-container">
             <div class="control-button" onclick="decreaseQuestions()">➖</div>
@@ -209,7 +184,6 @@ if st.session_state.game_state == 'setup':
         
         st.markdown("**⏰ 제한시간**")
         
-        # 제한 시간 컨트롤 UI (버튼 테두리 문제 해결)
         st.markdown(f"""
         <div class="control-container">
             <div class="control-button" onclick="decreaseTime()">➖</div>
@@ -255,11 +229,9 @@ if st.session_state.game_state == 'setup':
 
 # 게임 진행 단계
 elif st.session_state.game_state == 'playing':
-    # 진행률 표시
     progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
     st.progress(progress)
     
-    # 타이머 표시 (프로그레스 바로 시각화)
     time_limit = st.session_state.time_limit
     elapsed = time.time() - st.session_state.question_start_time
     remaining = max(0, time_limit - elapsed)
