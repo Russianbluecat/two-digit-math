@@ -206,12 +206,12 @@ elif st.session_state.game_state == 'playing':
     current_q_idx = st.session_state.current_question - 1
     num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
     
-    # 점수 표시 - 오른쪽 정렬로 변경하고 폰트 크기 조정 (상단 여백 줄임)
+    # 점수 표시 - 오른쪽 정렬로 변경하고 폰트 크기 조정 (상단 여백 더 줄임)
     accuracy = (st.session_state.correct_count / (st.session_state.current_question - 1) * 100) if st.session_state.current_question > 1 else 0
     
     st.markdown(f"""
-    <div style='text-align: right; margin-bottom: 10px; margin-top: -10px;'>
-        <div style='font-size: 0.8rem; color: #666; margin-bottom: 2px;'>
+    <div style='text-align: right; margin-bottom: 5px; margin-top: -20px;'>
+        <div style='font-size: 0.75rem; color: #666; margin-bottom: 0px;'>
             문제: <span style='font-weight: bold; color: #333;'>{st.session_state.current_question}/{len(st.session_state.questions)}</span> | 
             정답: <span style='font-weight: bold; color: #333;'>{st.session_state.correct_count}</span> | 
             정답률: <span style='font-weight: bold; color: #333;'>{accuracy:.1f}%</span>
@@ -219,19 +219,19 @@ elif st.session_state.game_state == 'playing':
     </div>
     """, unsafe_allow_html=True)
     
-    # 문제 출제 (여백 줄임)
-    st.markdown(f"<h3 style='margin-top: 10px; margin-bottom: 10px;'>문제 {st.session_state.current_question}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='margin-top: 5px; margin-bottom: 15px;'>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
+    # 문제 출제 (여백 더 줄임)
+    st.markdown(f"<h3 style='margin-top: 5px; margin-bottom: 5px;'>문제 {st.session_state.current_question}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='margin-top: 0px; margin-bottom: 10px;'>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
     
-    # 경과 시간 표시 (여백 줄임)
+    # 경과 시간 표시 (여백 더 줄임)
     if 'question_start_time' in st.session_state:
         elapsed = time.time() - st.session_state.question_start_time
         time_limit = st.session_state.get('time_limit', 5)  # 세션에서 제한시간 가져오기
         remaining = max(0, time_limit - elapsed)
         if remaining > 0:
-            st.markdown(f"<h3 style='margin-top: 5px; margin-bottom: 15px;'>⏰ 남은 시간: {remaining:.1f}초</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin-top: 0px; margin-bottom: 10px;'>⏰ 남은 시간: {remaining:.1f}초</h3>", unsafe_allow_html=True)
         else:
-            st.markdown("<h3 style='margin-top: 5px; margin-bottom: 15px;'>⏰ 시간 초과!</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top: 0px; margin-bottom: 10px;'>⏰ 시간 초과!</h3>", unsafe_allow_html=True)
     
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input("답을 입력하세요:", key="answer_input")
