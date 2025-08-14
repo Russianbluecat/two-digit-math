@@ -196,6 +196,7 @@ if st.session_state.game_state == 'setup':
         </style>
         """, unsafe_allow_html=True)
         
+        # 문제 개수 컨트롤 UI
         st.markdown(f"""
         <div class="control-container">
             <div class="control-button" onclick="decreaseQuestions()">➖</div>
@@ -204,25 +205,21 @@ if st.session_state.game_state == 'setup':
         </div>
         """, unsafe_allow_html=True)
         
-        with st.container():
-            st.markdown('<div class="hidden-buttons">', unsafe_allow_html=True)
-            col_a, col_b = st.columns(2)
-            with col_a:
-                if st.button("", key="question_minus", help="decrease_q"):
-                    if st.session_state.question_count > 5:
-                        st.session_state.question_count -= 1
-                        st.rerun()
-            with col_b:
-                if st.button("", key="question_plus", help="increase_q"):
-                    if st.session_state.question_count < 20:
-                        st.session_state.question_count += 1
-                        st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        
+        # 실제 동작하는 버튼은 숨겨진 상태로 유지
+        st.button("", key="question_minus", help="decrease_q", on_click=lambda: (
+            st.session_state.question_count > 5 and st.session_state.update(question_count=st.session_state.question_count - 1),
+            st.rerun() if st.session_state.question_count > 5 else None
+        ))
+        st.button("", key="question_plus", help="increase_q", on_click=lambda: (
+            st.session_state.question_count < 20 and st.session_state.update(question_count=st.session_state.question_count + 1),
+            st.rerun() if st.session_state.question_count < 20 else None
+        ))
+
         st.markdown("<br>", unsafe_allow_html=True)
         
         st.markdown("**⏰ 제한시간**")
         
+        # 제한 시간 컨트롤 UI
         st.markdown(f"""
         <div class="control-container">
             <div class="control-button" onclick="decreaseTime()">➖</div>
@@ -231,20 +228,15 @@ if st.session_state.game_state == 'setup':
         </div>
         """, unsafe_allow_html=True)
         
-        with st.container():
-            st.markdown('<div class="hidden-buttons">', unsafe_allow_html=True)
-            col_c, col_d = st.columns(2)
-            with col_c:
-                if st.button("", key="time_minus", help="decrease_t"):
-                    if st.session_state.time_limit > 3:
-                        st.session_state.time_limit -= 1
-                        st.rerun()
-            with col_d:
-                if st.button("", key="time_plus", help="increase_t"):
-                    if st.session_state.time_limit < 10:
-                        st.session_state.time_limit += 1
-                        st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+        # 실제 동작하는 버튼은 숨겨진 상태로 유지
+        st.button("", key="time_minus", help="decrease_t", on_click=lambda: (
+            st.session_state.time_limit > 3 and st.session_state.update(time_limit=st.session_state.time_limit - 1),
+            st.rerun() if st.session_state.time_limit > 3 else None
+        ))
+        st.button("", key="time_plus", help="increase_t", on_click=lambda: (
+            st.session_state.time_limit < 10 and st.session_state.update(time_limit=st.session_state.time_limit + 1),
+            st.rerun() if st.session_state.time_limit < 10 else None
+        ))
         
         st.markdown("""
         <script>
