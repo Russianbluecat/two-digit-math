@@ -265,37 +265,34 @@ elif st.session_state.game_state == 'finished':
     total_questions = len(st.session_state.questions)
     accuracy = (st.session_state.correct_count / total_questions) * 100
     
-    st.markdown("## 🎉 게임 완료!")
+    st.markdown("<h2 style='margin-top: -20px; margin-bottom: 10px;'>🎉 게임 완료!</h2>", unsafe_allow_html=True)
     
-    # 결과 카드
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(
-            label="총 문제 수",
-            value=f"{total_questions}개"
-        )
-    with col2:
-        st.metric(
-            label="정답 수",
-            value=f"{st.session_state.correct_count}개"
-        )
-    with col3:
-        st.metric(
-            label="정답률",
-            value=f"{accuracy:.1f}%"
-        )
+    # 결과를 컴팩트하게 표시 (metric 대신 HTML 사용)
+    st.markdown(f"""
+    <div style='text-align: center; margin-bottom: 10px;'>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+            총 문제 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{total_questions}개</span>
+        </div>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+            정답 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{st.session_state.correct_count}개</span>
+        </div>
+        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+            정답률: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{accuracy:.1f}%</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # 성적에 따른 메시지
+    # 성적에 따른 메시지 (크기 줄임)
     if accuracy == 100:
-        st.markdown("<div style='text-align: center;'><h3 style='color: green;'>🏆 완벽합니다! 천재군요!</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: green; margin: 0;'>🏆 완벽합니다! 천재군요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 80:
-        st.markdown("<div style='text-align: center;'><h3 style='color: green;'>🌟 훌륭해요!</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: green; margin: 0;'>🌟 훌륭해요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 60:
-        st.markdown("<div style='text-align: center;'><h3 style='color: blue;'>👍 잘했어요!</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: blue; margin: 0;'>👍 잘했어요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 40:
-        st.markdown("<div style='text-align: center;'><h3 style='color: orange;'>💪 조금만 더 연습하면 완벽해질 거예요!</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: orange; margin: 0;'>💪 조금만 더 연습하면 완벽해질 거예요!</h4></div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div style='text-align: center;'><h3 style='color: red;'>📚 더 연습해보세요!</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: red; margin: 0;'>📚 더 연습해보세요!</h4></div>", unsafe_allow_html=True)
     
     # 다시하기 버튼
     col1, col2 = st.columns(2)
