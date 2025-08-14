@@ -341,7 +341,8 @@ if st.session_state.game_state == 'setup':
             font-size: 18px;
             font-weight: bold;
             padding: 15px;
-            background: #f0f2f6;
+            background: black; /* 배경색을 검정색으로 변경 */
+            color: white; /* 글자색을 흰색으로 변경 */
             border-radius: 10px;
             margin: 0 10px;
         }
