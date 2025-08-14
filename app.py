@@ -350,25 +350,27 @@ if st.session_state.game_state == 'setup':
         """, unsafe_allow_html=True)
         
         # 문제 개수 설정 UI
-        st.markdown('<div class="question-controls">', unsafe_allow_html=True)
-        cols = st.columns([1, 2, 1])
-        with cols[0]:
-            if st.button("➖", key="question_minus"):
+        col_minus, col_text, col_plus = st.columns([1, 1, 1])
+        
+        with col_minus:
+            if st.button("➖", key="question_minus", use_container_width=True):
                 if st.session_state.question_count > 5:
                     st.session_state.question_count -= 1
                     st.rerun()
-        with cols[1]:
-            st.markdown(f"""
-            <div class="question-display">
-                {st.session_state.question_count}개
-            </div>
-            """, unsafe_allow_html=True)
-        with cols[2]:
-            if st.button("➕", key="question_plus"):
+                    
+        with col_text:
+            st.markdown(
+             f"<h3 style='text-align: center; vertical-align: middle; line-height: 2.2;'>{st.session_state.question_count}개</h3>",
+             unsafe_allow_html=True
+            )
+            
+        with col_plus:
+            if st.button("➕", key="question_plus", use_container_width=True):
                 if st.session_state.question_count < 20:
                     st.session_state.question_count += 1
                     st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+                    
+        
         
         st.markdown("<br>", unsafe_allow_html=True)
         
@@ -376,25 +378,26 @@ if st.session_state.game_state == 'setup':
         st.markdown("**⏰ 제한시간**")
         
         # 제한시간 설정 UI
-        st.markdown('<div class="question-controls">', unsafe_allow_html=True)
-        cols = st.columns([1, 2, 1])
-        with cols[0]:
-            if st.button("➖", key="time_minus"):
+        col_minus, col_text, col_plus = st.columns([1, 1, 1])
+
+        with col_minus:
+            if st.button("➖", key="time_minus", use_container_width=True):
                 if st.session_state.time_limit > 3:
                     st.session_state.time_limit -= 1
                     st.rerun()
-        with cols[1]:
-            st.markdown(f"""
-            <div class="question-display">
-                {st.session_state.time_limit}초
-            </div>
-            """, unsafe_allow_html=True)
-        with cols[2]:
-            if st.button("➕", key="time_plus"):
+                    
+        with col_text:
+            st.markdown(
+            f"<h3 style='text-align: center; vertical-align: middle; line-height: 2.2;'>{st.session_state.time_limit}초</h3>",
+            unsafe_allow_html=True
+            )
+            
+        with col_plus:
+            if st.button("➕", key="time_plus", use_container_width=True):
                 if st.session_state.time_limit < 10:
                     st.session_state.time_limit += 1
                     st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+        
         
         st.markdown("<br><br>", unsafe_allow_html=True)
         
