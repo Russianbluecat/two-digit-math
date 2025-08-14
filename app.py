@@ -2,12 +2,29 @@ import streamlit as st
 import random
 import time
 
+# Google Analytics 추가
+def add_google_analytics():
+    ga_code = """
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Q1S1M127P"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-4Q1S1M127P');
+    </script>
+    """
+    st.markdown(ga_code, unsafe_allow_html=True)
+
 # 페이지 설정
 st.set_page_config(
     page_title="두 자리 수 암산 게임",
     page_icon="🧮",
     layout="centered"
 )
+
+# Google Analytics 활성화
+add_google_analytics()
 
 # 세션 상태 초기화
 if 'game_state' not in st.session_state:
