@@ -45,7 +45,6 @@ try:
     spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
     sheet = spreadsheet.worksheet("Sheet1") # 시트 이름 확인
     SHEETS_ENABLED = True
-    # st.success("✅ Google Sheets 연결 성공!") # 2. 'Google Sheets 연결 성공!' 영역 삭제
 except Exception as e:
     # 로컬 개발용 또는 설정 오류 시
     GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
@@ -319,14 +318,6 @@ def reset_game():
 
 # 메인 UI
 st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
-
-# 3. '시스템 정보' 영역 삭제
-# with st.expander("🔧 시스템 정보"):
-#     st.write(f"**Google Sheets 연결 상태:** {'✅ 활성화' if SHEETS_ENABLED else '❌ 비활성화'}")
-#     st.write(f"**Sheet ID:** {GOOGLE_SHEET_ID}")
-#     
-#     # 연결 테스트 버튼
-#     test_google_sheets_connection()
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -639,42 +630,3 @@ elif st.session_state.game_state == 'finished':
 # 푸터
 st.markdown("---")
 st.markdown("Made with ❤️ using Streamlit")
-
-# Google Sheets 설정 안내
-st.markdown("---")
-st.markdown("### 📋 Google Sheets 설정 방법")
-
-with st.expander("🔧 개발자를 위한 설정 안내"):
-    st.markdown("""
-    **1. 서비스 계정 생성 및 JSON 키 파일 다운로드**
-    - Google Cloud Console 접속 > `API 및 서비스` > `사용자 인증 정보` > `사용자 인증 정보 만들기` > `서비스 계정`
-    - 생성된 서비스 계정의 `키` 탭에서 `새 키 추가` > `JSON` 형식으로 다운로드
-    
-    **2. Google Sheets 공유 설정**
-    - 스프레드시트의 '공유' 버튼 클릭
-    - 다운로드한 JSON 파일 속 `"client_email"` 주소를 복사하여 `사용자 추가`
-    - 권한을 **`편집자`**로 설정
-    
-    **3. Streamlit Secrets 설정**
-    - `.streamlit/secrets.toml` 파일 또는 Streamlit Cloud의 `Secrets`에 아래와 같이 추가
-    ```toml
-    [gcp_service_account]
-    type = "service_account"
-    project_id = "your-project-id"
-    private_key_id = "your_private_key_id"
-    private_key = "your_private_key" # <-- JSON 파일 내용 전체
-    client_email = "your-service-account-email"
-    client_id = "your-client-id"
-    auth_uri = "[https://accounts.google.com/o/oauth2/auth](https://accounts.google.com/o/oauth2/auth)"
-    token_uri = "[https://oauth2.googleapis.com/token](https://oauth2.googleapis.com/token)"
-    auth_provider_x509_cert_url = "[https://www.googleapis.com/oauth2/v1/certs](https://www.googleapis.com/oauth2/v1/certs)"
-    client_x509_cert_url = "[https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email](https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email)"
-    
-    # 시트 ID는 별도로 입력
-    GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
-    ```
-    """)
-
-# 현재 설정된 스프레드시트 링크
-st.markdown("### 🔗 현재 연결된 스프레드시트")
-st.markdown(f"[📊 데이터 확인하기](https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/edit)")
