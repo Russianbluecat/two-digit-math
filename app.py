@@ -45,7 +45,7 @@ try:
     spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
     sheet = spreadsheet.worksheet("Sheet1") # 시트 이름 확인
     SHEETS_ENABLED = True
-    st.success("✅ Google Sheets 연결 성공!")
+    # st.success("✅ Google Sheets 연결 성공!") # 2. 'Google Sheets 연결 성공!' 영역 삭제
 except Exception as e:
     # 로컬 개발용 또는 설정 오류 시
     GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
@@ -320,13 +320,13 @@ def reset_game():
 # 메인 UI
 st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
-# 디버그 정보 표시
-with st.expander("🔧 시스템 정보"):
-    st.write(f"**Google Sheets 연결 상태:** {'✅ 활성화' if SHEETS_ENABLED else '❌ 비활성화'}")
-    st.write(f"**Sheet ID:** {GOOGLE_SHEET_ID}")
-    
-    # 연결 테스트 버튼
-    test_google_sheets_connection()
+# 3. '시스템 정보' 영역 삭제
+# with st.expander("🔧 시스템 정보"):
+#     st.write(f"**Google Sheets 연결 상태:** {'✅ 활성화' if SHEETS_ENABLED else '❌ 비활성화'}")
+#     st.write(f"**Sheet ID:** {GOOGLE_SHEET_ID}")
+#     
+#     # 연결 테스트 버튼
+#     test_google_sheets_connection()
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -459,11 +459,11 @@ elif st.session_state.game_state == 'playing':
     
     st.markdown(f"""
     <div style='text-align: right; margin-bottom: 5px; margin-top: -20px;'>
-        <div style='font-size: 0.75rem; color: #666; margin-bottom: 0px;'>
-            문제: <span style='font-weight: bold; color: #333;'>{st.session_state.current_question}/{len(st.session_state.questions)}</span> | 
-            정답: <span style='font-weight: bold; color: #333;'>{st.session_state.correct_count}</span> | 
-            정답률: <span style='font-weight: bold; color: #333;'>{accuracy:.1f}%</span>
-        </div>
+      <div style='font-size: 0.75rem; color: #666; margin-bottom: 0px;'>
+        문제: <span style='font-weight: bold; color: #333;'>{st.session_state.current_question}/{len(st.session_state.questions)}</span> | 
+        정답: <span style='font-weight: bold; color: #333;'>{st.session_state.correct_count}</span> | 
+        정답률: <span style='font-weight: bold; color: #333;'>{accuracy:.1f}%</span>
+      </div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -518,15 +518,15 @@ elif st.session_state.game_state == 'finished':
     # 개인 결과 표시
     st.markdown(f"""
     <div style='text-align: center; margin-bottom: 10px;'>
-        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-            총 문제 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{total_questions}개</span>
-        </div>
-        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-            정답 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{st.session_state.correct_count}개</span>
-        </div>
-        <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-            정답률: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{accuracy:.1f}%</span>
-        </div>
+      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+        총 문제 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{total_questions}개</span>
+      </div>
+      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+        정답 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{st.session_state.correct_count}개</span>
+      </div>
+      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+        정답률: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{accuracy:.1f}%</span>
+      </div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -557,40 +557,40 @@ elif st.session_state.game_state == 'finished':
         # 전체 통계 표시
         st.markdown(f"""
         <div style='background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-            <div style='text-align: center; margin-bottom: 15px;'>
-                <div style='font-size: 1.1rem; color: #333; font-weight: bold; margin-bottom: 15px;'>
-                    🌟 지금까지 총 <span style='color: #1f77b4; font-size: 1.3rem;'>{global_stats['total_games']:,}명</span>이 도전했습니다!
-                </div>
-                <div style='font-size: 0.9rem; color: #666; margin-bottom: 10px;'>
-                    📈 전체 평균 정답률: <span style='font-weight: bold; color: #333;'>{global_stats['average_accuracy']:.1f}%</span>
-                </div>
+          <div style='text-align: center; margin-bottom: 15px;'>
+            <div style='font-size: 1.1rem; color: #333; font-weight: bold; margin-bottom: 15px;'>
+              🌟 지금까지 총 <span style='color: #1f77b4; font-size: 1.3rem;'>{global_stats['total_games']:,}명</span>이 도전했습니다!
             </div>
-            
-            <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
-                🏆 100% 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['perfect_count']}명</span> 
-                <span style='color: #28a745;'>({global_stats['perfect_rate']:.1f}%)</span>
+            <div style='font-size: 0.9rem; color: #666; margin-bottom: 10px;'>
+              📈 전체 평균 정답률: <span style='font-weight: bold; color: #333;'>{global_stats['average_accuracy']:.1f}%</span>
             </div>
-            
-            <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
-                🌟 90% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['great_count']}명</span> 
-                <span style='color: #28a745;'>({global_stats['great_rate']:.1f}%)</span>
+          </div>
+          
+          <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
+            🏆 100% 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['perfect_count']}명</span> 
+            <span style='color: #28a745;'>({global_stats['perfect_rate']:.1f}%)</span>
+          </div>
+          
+          <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
+            🌟 90% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['great_count']}명</span> 
+            <span style='color: #28a745;'>({global_stats['great_rate']:.1f}%)</span>
+          </div>
+          
+          <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
+            👍 80% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['good_count']}명</span> 
+            <span style='color: #007bff;'>({global_stats['good_rate']:.1f}%)</span>
+          </div>
+          
+          <div style='font-size: 0.95rem; color: #666; margin-bottom: 15px;'>
+            💪 70% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['okay_count']}명</span> 
+            <span style='color: #6c757d;'>({global_stats['okay_rate']:.1f}%)</span>
+          </div>
+          
+          <div style='text-align: center; padding-top: 10px; border-top: 2px solid #ddd;'>
+            <div style='font-size: 1.1rem; font-weight: bold; color: #dc3545;'>
+              🎯 당신은 <span style='font-size: 1.2rem;'>{get_user_rank(accuracy, global_stats['accuracy_list'])}</span> 입니다!
             </div>
-            
-            <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
-                👍 80% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['good_count']}명</span> 
-                <span style='color: #007bff;'>({global_stats['good_rate']:.1f}%)</span>
-            </div>
-            
-            <div style='font-size: 0.95rem; color: #666; margin-bottom: 15px;'>
-                💪 70% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['okay_count']}명</span> 
-                <span style='color: #6c757d;'>({global_stats['okay_rate']:.1f}%)</span>
-            </div>
-            
-            <div style='text-align: center; padding-top: 10px; border-top: 2px solid #ddd;'>
-                <div style='font-size: 1.1rem; font-weight: bold; color: #dc3545;'>
-                    🎯 당신은 <span style='font-size: 1.2rem;'>{get_user_rank(accuracy, global_stats['accuracy_list'])}</span> 입니다!
-                </div>
-            </div>
+          </div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -611,15 +611,15 @@ elif st.session_state.game_state == 'finished':
             overall_accuracy = (st.session_state.total_correct / st.session_state.total_questions) * 100
             st.markdown(f"""
             <div style='background-color: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 15px;'>
-                <div style='text-align: center; color: #856404; margin-bottom: 10px;'>
-                    ⚠️ 전체 통계를 불러올 수 없어 세션 통계를 표시합니다
-                </div>
-                <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-                    • 이번 세션 게임 수: <span style='font-weight: bold; color: #333;'>{st.session_state.total_games}게임</span>
-                </div>
-                <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-                    • 평균 정답률: <span style='font-weight: bold; color: #333;'>{overall_accuracy:.1f}%</span>
-                </div>
+              <div style='text-align: center; color: #856404; margin-bottom: 10px;'>
+                ⚠️ 전체 통계를 불러올 수 없어 세션 통계를 표시합니다
+              </div>
+              <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+                • 이번 세션 게임 수: <span style='font-weight: bold; color: #333;'>{st.session_state.total_games}게임</span>
+              </div>
+              <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
+                • 평균 정답률: <span style='font-weight: bold; color: #333;'>{overall_accuracy:.1f}%</span>
+              </div>
             </div>
             """, unsafe_allow_html=True)
         else:
