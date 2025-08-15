@@ -481,20 +481,23 @@ elif st.session_state.game_state == 'playing':
 
          # 👇 이 부분에 아래 코드를 추가합니다.
         # 자바스크립트를 이용해 텍스트 입력창에 포커스 자동 설정
-        st.markdown(
-            """
-            <script>
-            function setFocusToInput() {
-                const inputElement = parent.document.querySelector('[data-testid="stTextInput"] input');
-                if (inputElement) {
-                    inputElement.focus();
+        if st.session_state.get('focus_on_input', False):
+            st.markdown(
+                """
+                <script>
+                function setFocusToInput() {
+                    const inputElement = parent.document.querySelector('[data-testid="stTextInput"] input');
+                    if (inputElement) {
+                        inputElement.focus();
+                    }
                 }
-            }
-            setTimeout(setFocusToInput, 100);
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+                setTimeout(setFocusToInput, 100);
+                </script>
+                """,
+                unsafe_allow_html=True
+            )
+            # 포커스 설정 후 플래그를 다시 False로 변경
+            st.session_state.focus_on_input = False
         
         if submitted:
             st.session_state.user_answer = user_input
