@@ -478,6 +478,23 @@ elif st.session_state.game_state == 'playing':
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input("답을 입력하세요:", key="answer_input")
         submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
+
+         # 👇 이 부분에 아래 코드를 추가합니다.
+        # 자바스크립트를 이용해 텍스트 입력창에 포커스 자동 설정
+        st.markdown(
+            """
+            <script>
+            function setFocusToInput() {
+                const inputElement = parent.document.querySelector('[data-testid="stTextInput"] input');
+                if (inputElement) {
+                    inputElement.focus();
+                }
+            }
+            setTimeout(setFocusToInput, 100);
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
         
         if submitted:
             st.session_state.user_answer = user_input
