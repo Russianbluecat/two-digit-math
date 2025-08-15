@@ -88,7 +88,7 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         return False
 
 def get_global_statistics():
-    """Google Sheets에서 전체 통계 조회 (gspread 버전)"""
+    """Google Sheets에서 전체 통계 조회 (gspread 버전) - 구간별 통계로 수정"""
     if not SHEETS_ENABLED:
         return None
         
@@ -119,11 +119,12 @@ def get_global_statistics():
         if not accuracy_list:
             return None
             
-        # 통계 계산
-        perfect_count = len([acc for acc in accuracy_list if acc == 100])
-        great_count = len([acc for acc in accuracy_list if acc >= 90])
-        good_count = len([acc for acc in accuracy_list if acc >= 80])
-        okay_count = len([acc for acc in accuracy_list if acc >= 70])
+        # 구간별 통계 계산 (수정된 부분)
+        perfect_count = len([acc for acc in accuracy_list if acc == 100])  # 100%
+        great_count = len([acc for acc in accuracy_list if 90 <= acc < 100])  # 90% 이상 100% 미만
+        good_count = len([acc for acc in accuracy_list if 80 <= acc < 90])   # 80% 이상 90% 미만
+        okay_count = len([acc for acc in accuracy_list if 70 <= acc < 80])   # 70% 이상 80% 미만
+        poor_count = len([acc for acc in accuracy_list if acc < 70])         # 70% 미만
         
         return {
             'total_games': total_games,
@@ -135,6 +136,8 @@ def get_global_statistics():
             'good_rate': (good_count / total_games) * 100,
             'okay_count': okay_count,
             'okay_rate': (okay_count / total_games) * 100,
+            'poor_count': poor_count,  # 새로 추가
+            'poor_rate': (poor_count / total_games) * 100,  # 새로 추가
             'accuracy_list': accuracy_list,
             'average_accuracy': sum(accuracy_list) / len(accuracy_list)
         }
@@ -563,18 +566,23 @@ elif st.session_state.game_state == 'finished':
           </div>
           
           <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
-            🌟 90% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['great_count']}명</span> 
+            🌟 90% 이상 100% 미만 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['great_count']}명</span> 
             <span style='color: #28a745;'>({global_stats['great_rate']:.1f}%)</span>
           </div>
           
           <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
-            👍 80% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['good_count']}명</span> 
+            👍 80% 이상 90% 미만 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['good_count']}명</span> 
             <span style='color: #007bff;'>({global_stats['good_rate']:.1f}%)</span>
           </div>
           
+          <div style='font-size: 0.95rem; color: #666; margin-bottom: 8px;'>
+            💪 70% 이상 80% 미만 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['okay_count']}명</span> 
+            <span style='color: #ffc107;'>({global_stats['okay_rate']:.1f}%)</span>
+          </div>
+          
           <div style='font-size: 0.95rem; color: #666; margin-bottom: 15px;'>
-            💪 70% 이상 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['okay_count']}명</span> 
-            <span style='color: #6c757d;'>({global_stats['okay_rate']:.1f}%)</span>
+            📚 70% 미만 달성자: <span style='font-weight: bold; color: #333;'>{global_stats['poor_count']}명</span> 
+            <span style='color: #dc3545;'>({global_stats['poor_rate']:.1f}%)</span>
           </div>
           
           <div style='text-align: center; padding-top: 10px; border-top: 2px solid #ddd;'>
