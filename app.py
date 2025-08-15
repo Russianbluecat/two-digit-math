@@ -72,7 +72,7 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         ]
         
         # Google Sheets API URL (values:append 방식)
-        sheet_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/Sheet1!A:H:append"
+        sheet_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/Sheet1!A1:H1:append"
         
         # 요청 파라미터
         params = {
