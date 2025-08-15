@@ -31,21 +31,31 @@ st.set_page_config(
 add_google_analytics()
 
 # Google Sheets 설정 (환경변수 또는 secrets에서 가져오기)
-# Streamlit Cloud에서는 st.secrets를 사용
 try:
     GOOGLE_SHEET_ID = st.secrets["GOOGLE_SHEET_ID"]
     GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-except:
-    # 로컬 개발용 기본값 (실제 배포시에는 secrets에 설정)
-    GOOGLE_SHEET_ID = "your_sheet_id_here"
-    GOOGLE_API_KEY = "your_api_key_here"
+    SHEETS_ENABLED = True
+    st.success("✅ Google Sheets 연결 성공!")
+except Exception as e:
+    # 로컬 개발용 - secrets 파일이 없는 경우
+    GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
+    GOOGLE_API_KEY = ""  # 실제 API 키가 필요합니다
+    SHEETS_ENABLED = False
+    st.warning("⚠️ Google Sheets 설정이 필요합니다. 로컬 저장만 사용됩니다.")
+    st.error(f"설정 오류: {str(e)}")
 
-# Google Sheets 관련 함수들
+# Google Sheets 관련 함수들 (수정된 버전)
 def save_game_result(total_questions, correct_count, accuracy, operation_type, time_limit, elapsed_time):
-    """게임 결과를 Google Sheets에 저장"""
+    """게임 결과를 Google Sheets에 저장 (개선된 버전)"""
+    if not SHEETS_ENABLED or not GOOGLE_API_KEY:
+        st.warning("⚠️ Google Sheets가 설정되지 않아 결과를 저장할 수 없습니다.")
+        return False
+    
     try:
         # 현재 시간 (한국 시간으로 조정)
-        now = datetime.now()
+        from datetime import timezone, timedelta
+        kst = timezone(timedelta(hours=9))
+        now = datetime.now(kst)
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M:%S")
         
@@ -53,41 +63,65 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         row_data = [
             date_str,
             time_str,
-            total_questions,
-            correct_count,
+            str(total_questions),
+            str(correct_count),
             f"{accuracy:.1f}%",
             operation_type,
             f"{time_limit}초",
             f"{elapsed_time:.1f}초"
         ]
         
-        # Google Sheets API를 통해 데이터 추가
-        sheet_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/Sheet1:append"
+        # Google Sheets API URL (values:append 방식)
+        sheet_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/Sheet1!A:H:append"
+        
+        # 요청 파라미터
         params = {
-            "valueInputOption": "RAW",
+            "valueInputOption": "USER_ENTERED",
+            "insertDataOption": "INSERT_ROWS",
             "key": GOOGLE_API_KEY
         }
         
+        # 요청 데이터
         data = {
+            "range": "Sheet1!A:H",
+            "majorDimension": "ROWS",
             "values": [row_data]
         }
         
-        # POST 요청 보내기
-        response = requests.post(sheet_url, params=params, json=data)
+        # Headers
+        headers = {
+            "Content-Type": "application/json"
+        }
         
+        # POST 요청 보내기
+        response = requests.post(sheet_url, params=params, json=data, headers=headers, timeout=10)
+        
+        # 응답 확인
         if response.status_code == 200:
             st.success("✅ 결과가 성공적으로 저장되었습니다!")
             return True
         else:
             st.error(f"❌ 저장 실패: HTTP {response.status_code}")
-            # 에러 세부사항 출력 (디버깅용)
+            # 상세 오류 정보
             try:
                 error_detail = response.json()
-                st.error(f"상세 오류: {error_detail}")
+                st.error(f"API 오류: {error_detail.get('error', {}).get('message', '알 수 없는 오류')}")
+                
+                # API 키나 권한 문제 체크
+                if "API key not valid" in str(error_detail):
+                    st.error("🔑 API 키가 유효하지 않습니다. secrets.toml 파일을 확인해주세요.")
+                elif "does not have access" in str(error_detail):
+                    st.error("🔐 API 키에 Google Sheets 접근 권한이 없습니다.")
+                elif "not found" in str(error_detail):
+                    st.error("📄 스프레드시트를 찾을 수 없습니다. Sheet ID를 확인해주세요.")
+                    
             except:
-                st.error(f"응답 내용: {response.text}")
+                st.error(f"응답 내용: {response.text[:200]}...")
             return False
             
+    except requests.exceptions.Timeout:
+        st.error("❌ 요청 시간 초과: 네트워크 상태를 확인해주세요.")
+        return False
     except requests.exceptions.RequestException as e:
         st.error(f"❌ 네트워크 오류: {str(e)}")
         return False
@@ -96,15 +130,27 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         return False
 
 def get_global_statistics():
-    """Google Sheets에서 전체 통계 조회"""
+    """Google Sheets에서 전체 통계 조회 (개선된 버전)"""
+    if not SHEETS_ENABLED or not GOOGLE_API_KEY:
+        return None
+        
     try:
         # Google Sheets에서 데이터 읽기
         sheet_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/Sheet1"
-        params = {"key": GOOGLE_API_KEY}
+        params = {
+            "key": GOOGLE_API_KEY,
+            "majorDimension": "ROWS"
+        }
         
-        response = requests.get(sheet_url, params=params)
+        response = requests.get(sheet_url, params=params, timeout=10)
+        
         if response.status_code != 200:
             st.warning(f"통계 데이터를 불러올 수 없습니다: HTTP {response.status_code}")
+            try:
+                error_detail = response.json()
+                st.warning(f"세부 오류: {error_detail.get('error', {}).get('message', '알 수 없는 오류')}")
+            except:
+                pass
             return None
             
         data = response.json()
@@ -121,7 +167,7 @@ def get_global_statistics():
         
         for row in rows:
             if len(row) >= 5:  # 최소한의 데이터가 있는지 확인
-                accuracy_str = row[4]  # 정답률 컬럼
+                accuracy_str = row[4] if len(row) > 4 else "0%"  # 정답률 컬럼
                 try:
                     accuracy = float(accuracy_str.replace('%', ''))
                     accuracy_list.append(accuracy)
@@ -151,6 +197,9 @@ def get_global_statistics():
             'average_accuracy': sum(accuracy_list) / len(accuracy_list)
         }
         
+    except requests.exceptions.Timeout:
+        st.warning("네트워크 시간 초과로 통계를 불러올 수 없습니다.")
+        return None
     except requests.exceptions.RequestException as e:
         st.warning(f"네트워크 오류로 통계를 불러올 수 없습니다: {str(e)}")
         return None
@@ -172,6 +221,45 @@ def get_user_rank(user_accuracy, accuracy_list):
     
     return f"상위 {percentile:.1f}%"
 
+# 테스트 함수 추가
+def test_google_sheets_connection():
+    """Google Sheets 연결 테스트"""
+    st.markdown("### 🔧 Google Sheets 연결 테스트")
+    
+    if st.button("연결 테스트 실행"):
+        if not GOOGLE_API_KEY:
+            st.error("❌ API 키가 설정되지 않았습니다.")
+            return
+            
+        try:
+            # 스프레드시트 메타데이터 조회 테스트
+            test_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}"
+            params = {"key": GOOGLE_API_KEY}
+            
+            response = requests.get(test_url, params=params, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                st.success(f"✅ 연결 성공!")
+                st.success(f"📊 스프레드시트 제목: {data.get('properties', {}).get('title', 'Unknown')}")
+                
+                # 시트 정보 표시
+                sheets = data.get('sheets', [])
+                if sheets:
+                    sheet_names = [sheet.get('properties', {}).get('title', 'Unknown') for sheet in sheets]
+                    st.info(f"📝 시트 목록: {', '.join(sheet_names)}")
+            else:
+                st.error(f"❌ 연결 실패: HTTP {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    st.error(f"오류 세부사항: {error_detail}")
+                except:
+                    st.error(f"응답 내용: {response.text}")
+                    
+        except Exception as e:
+            st.error(f"❌ 테스트 실패: {str(e)}")
+
+# 나머지 기존 코드들 (세션 상태 초기화부터 UI까지는 동일)
 # 세션 상태 초기화
 if 'game_state' not in st.session_state:
     st.session_state.game_state = 'setup'  # setup, playing, finished
@@ -285,15 +373,16 @@ def next_question():
         elapsed_time = time.time() - st.session_state.start_time
         
         # Google Sheets에 저장 (비동기적으로 처리)
-        with st.spinner("결과를 저장하는 중..."):
-            save_success = save_game_result(
-                total_questions,
-                st.session_state.correct_count,
-                accuracy,
-                st.session_state.get('operation_type', '랜덤'),
-                st.session_state.get('time_limit', 5),
-                elapsed_time
-            )
+        if SHEETS_ENABLED:
+            with st.spinner("결과를 저장하는 중..."):
+                save_success = save_game_result(
+                    total_questions,
+                    st.session_state.correct_count,
+                    accuracy,
+                    st.session_state.get('operation_type', '랜덤'),
+                    st.session_state.get('time_limit', 5),
+                    elapsed_time
+                )
         
         # 로컬 통계도 업데이트 (백업용)
         st.session_state.total_games += 1
@@ -314,6 +403,15 @@ def reset_game():
 
 # 메인 UI
 st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
+
+# 디버그 정보 표시
+with st.expander("🔧 시스템 정보"):
+    st.write(f"**Google Sheets 연결 상태:** {'✅ 활성화' if SHEETS_ENABLED else '❌ 비활성화'}")
+    st.write(f"**Sheet ID:** {GOOGLE_SHEET_ID}")
+    st.write(f"**API 키 설정:** {'✅ 있음' if GOOGLE_API_KEY else '❌ 없음'}")
+    
+    # 연결 테스트 버튼
+    test_google_sheets_connection()
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
@@ -533,8 +631,12 @@ elif st.session_state.game_state == 'finished':
     st.markdown("---")
     st.markdown("### 📊 실시간 전체 사용자 통계")
     
-    with st.spinner("전체 통계를 불러오는 중..."):
-        global_stats = get_global_statistics()
+    if SHEETS_ENABLED:
+        with st.spinner("전체 통계를 불러오는 중..."):
+            global_stats = get_global_statistics()
+    else:
+        global_stats = None
+        st.warning("⚠️ Google Sheets가 연결되지 않아 전체 통계를 표시할 수 없습니다.")
     
     if global_stats:
         # 전체 통계 표시
@@ -630,30 +732,68 @@ st.markdown("### 📋 Google Sheets 설정 방법")
 
 with st.expander("🔧 개발자를 위한 설정 안내"):
     st.markdown("""
-    **1. Google Sheets 생성**
-    - 새 Google Sheets 문서 생성
-    - 첫 번째 행에 헤더 추가: `날짜, 시간, 총문제수, 정답수, 정답률, 연산타입, 제한시간, 소요시간`
+    **1. Google Sheets API 활성화**
+    - Google Cloud Console (https://console.cloud.google.com) 접속
+    - 새 프로젝트 생성 또는 기존 프로젝트 선택
+    - "API 및 서비스" > "라이브러리" > "Google Sheets API" 검색 후 활성화
     
-    **2. Google Sheets API 활성화**
-    - Google Cloud Console에서 Sheets API 활성화
-    - API 키 생성 (제한: Sheets API만 허용)
+    **2. API 키 생성**
+    - "API 및 서비스" > "사용자 인증 정보" > "+ 사용자 인증 정보 만들기" > "API 키"
+    - 생성된 API 키 복사 (보안을 위해 IP 제한 권장)
     
-    **3. Streamlit Secrets 설정**
+    **3. Google Sheets 설정**
+    - 스프레드시트 URL에서 ID 추출: 
+      `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
+    - 시트를 "링크가 있는 모든 사용자 편집 가능"으로 설정
+    - 첫 번째 행에 헤더 추가: 
+      `날짜, 시간, 총문제수, 정답수, 정답률, 연산타입, 제한시간, 소요시간`
+    
+    **4. Streamlit Secrets 설정**
     ```toml
-    # .streamlit/secrets.toml
-    GOOGLE_SHEET_ID = "your_google_sheet_id"
-    GOOGLE_API_KEY = "your_google_api_key"
+    # .streamlit/secrets.toml (로컬 개발용)
+    GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
+    GOOGLE_API_KEY = "your_actual_api_key_here"
     ```
     
-    **4. Google Sheets 공개 설정**
-    - 시트를 "링크가 있는 모든 사용자" 편집 가능으로 설정
-    - 또는 서비스 계정 사용 권장 (보안성 향상)
+    **5. Streamlit Cloud 배포시**
+    - Settings > Secrets에 위 정보 입력
+    - 환경변수로 설정 가능
     
-    **주의사항:**
+    **현재 Sheet ID**: `1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc`
+    
+    **⚠️ 중요사항:**
     - API 키는 절대 코드에 직접 입력하지 마세요
     - 실제 배포시에는 서비스 계정 JSON 파일 사용 권장
     - API 사용량 제한을 고려하여 캐싱 구현 권장
     """)
+
+# 현재 설정된 스프레드시트 링크
+st.markdown("### 🔗 현재 연결된 스프레드시트")
+st.markdown(f"[📊 데이터 확인하기](https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/edit)")
+
+st.markdown("### 🎯 문제 해결 체크리스트")
+st.markdown("""
+**❌ 데이터가 저장되지 않는 경우:**
+
+1. **API 키 확인** ✅
+   - `.streamlit/secrets.toml` 파일에 올바른 API 키 입력했는지 확인
+   - API 키에 Google Sheets API 권한이 있는지 확인
+
+2. **스프레드시트 권한 확인** ✅
+   - 스프레드시트가 "링크가 있는 모든 사용자 편집 가능"으로 설정되어 있는지 확인
+   - Sheet ID가 올바른지 확인
+
+3. **헤더 설정 확인** ✅
+   - 첫 번째 행에 정확한 헤더가 있는지 확인
+   - `날짜, 시간, 총문제수, 정답수, 정답률, 연산타입, 제한시간, 소요시간`
+
+4. **네트워크 연결 확인** ✅
+   - 인터넷 연결 상태 확인
+   - 방화벽/프록시 설정 확인
+
+5. **브라우저 콘솔 확인** ✅
+   - F12 개발자 도구에서 오류 메시지 확인
+""")
 
 st.markdown("### 🎯 기대 효과")
 st.markdown("""
