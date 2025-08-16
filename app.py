@@ -4,7 +4,6 @@ import time
 import json
 import pandas as pd
 from datetime import datetime
-# requests 라이브러리 대신 gspread와 oauth2client 사용
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -54,31 +53,103 @@ st.set_page_config(
     layout="centered"
 )
 
+# 커스텀 CSS 스타일 추가
+st.markdown("""
+<style>
+    /* 기본 테마 색상 재정의 */
+    :root {
+        --primary-color: #007bff; /* 파란색 계열 */
+        --success-color: #28a745; /* 초록색 */
+    }
+    
+    /* 버튼에 그림자 및 둥근 모서리 적용 */
+    div.stButton > button {
+        border-radius: 12px;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    /* 버튼 hover 효과 */
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 기본 버튼 색상 */
+    .stButton button {
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        background-color: transparent;
+    }
+    
+    /* primary 버튼 색상 */
+    .stButton button.primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    /* secondary 버튼 색상 */
+    .stButton button.secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    /* text_input에 그림자 및 둥근 모서리 적용 */
+    .stTextInput > div > div > input {
+        border-radius: 12px;
+        box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ccc;
+    }
+    
+    /* expander 아이콘 색상 변경 */
+    .streamlit-expanderHeader i {
+        color: var(--primary-color);
+    }
+    
+    /* 제목 중앙 정렬 및 폰트 크기 조정 */
+    h1, h2, h3, h4, h5, h6 {
+        text-align: center;
+    }
+
+    /* 게임 설정 영역의 아이콘을 텍스트와 분리 */
+    .icon-spacing {
+        margin-right: 5px;
+    }
+    
+    /* 문제/정답/정답률 표기 스타일 */
+    .score-metrics {
+        text-align: right; 
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .score-metrics span {
+        font-weight: bold;
+        color: #333;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Google Analytics 활성화
 add_google_analytics()
 
 # Google Sheets 설정 (서비스 계정으로 변경)
 try:
-    # Streamlit Secrets에서 서비스 계정 정보 불러오기
-    # secrets.toml에 [gcp_service_account] 항목이 있어야 함
     scope = ['https://www.googleapis.com/auth/spreadsheets',
              'https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
     client = gspread.authorize(creds)
     
-    # secrets.toml에 GOOGLE_SHEET_ID 항목이 필요함
     GOOGLE_SHEET_ID = st.secrets["GOOGLE_SHEET_ID"]
     spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
-    sheet = spreadsheet.worksheet("Sheet1") # 시트 이름 확인
+    sheet = spreadsheet.worksheet("Sheet1")
     SHEETS_ENABLED = True
 except Exception as e:
-    # 로컬 개발용 또는 설정 오류 시
     GOOGLE_SHEET_ID = "1zVQMc_cKkXNTTTRMzDsyRrQS_i45iulV63l6JARy0tc"
     SHEETS_ENABLED = False
     st.warning("⚠️ Google Sheets 설정이 필요합니다. 로컬 저장만 사용됩니다.")
     st.error(f"설정 오류: {str(e)}")
 
-# Google Sheets 관련 함수들 (gspread로 수정)
+# Google Sheets 관련 함수들 (기존 코드와 동일)
 def save_game_result(total_questions, correct_count, accuracy, operation_type, time_limit, elapsed_time):
     """게임 결과를 Google Sheets에 저장 (gspread 버전)"""
     if not SHEETS_ENABLED:
@@ -86,14 +157,12 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
         return False
     
     try:
-        # 현재 시간 (한국 시간으로 조정)
         from datetime import timezone, timedelta
         kst = timezone(timedelta(hours=9))
         now = datetime.now(kst)
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M:%S")
         
-        # 저장할 데이터
         row_data = [
             date_str,
             time_str,
@@ -105,9 +174,8 @@ def save_game_result(total_questions, correct_count, accuracy, operation_type, t
             f"{elapsed_time:.1f}초"
         ]
         
-        # gspread의 append_row 함수 사용
         sheet.append_row(row_data) 
-        st.success("✅ 결과가 성공적으로 저장되었습니다!")
+        st.success("✔️ 결과가 성공적으로 저장되었습니다!")
         return True
     except Exception as e:
         st.error(f"❌ 데이터 저장 중 오류가 발생했습니다: {str(e)}")
@@ -119,23 +187,20 @@ def get_global_statistics():
         return None
         
     try:
-        # 모든 데이터 가져오기
         rows = sheet.get_all_values()
         
         if len(rows) < 2:
             st.info("아직 충분한 통계 데이터가 없습니다.")
             return None
         
-        # 첫 번째 행은 헤더, 나머지는 데이터
         rows = rows[1:]  # 헤더 제외
         
-        # 데이터 분석
         total_games = len(rows)
         accuracy_list = []
         
         for row in rows:
-            if len(row) >= 5:  # 최소한의 데이터가 있는지 확인
-                accuracy_str = row[4] if len(row) > 4 else "0%"  # 정답률 컬럼
+            if len(row) >= 5:
+                accuracy_str = row[4] if len(row) > 4 else "0%"
                 try:
                     accuracy = float(accuracy_str.replace('%', ''))
                     accuracy_list.append(accuracy)
@@ -145,12 +210,11 @@ def get_global_statistics():
         if not accuracy_list:
             return None
             
-        # 구간별 통계 계산 (수정된 부분)
-        perfect_count = len([acc for acc in accuracy_list if acc == 100])  # 100%
-        great_count = len([acc for acc in accuracy_list if 90 <= acc < 100])  # 90% 이상 100% 미만
-        good_count = len([acc for acc in accuracy_list if 80 <= acc < 90])   # 80% 이상 90% 미만
-        okay_count = len([acc for acc in accuracy_list if 70 <= acc < 80])   # 70% 이상 80% 미만
-        poor_count = len([acc for acc in accuracy_list if acc < 70])         # 70% 미만
+        perfect_count = len([acc for acc in accuracy_list if acc == 100])
+        great_count = len([acc for acc in accuracy_list if 90 <= acc < 100])
+        good_count = len([acc for acc in accuracy_list if 80 <= acc < 90])
+        okay_count = len([acc for acc in accuracy_list if 70 <= acc < 80])
+        poor_count = len([acc for acc in accuracy_list if acc < 70])
         
         return {
             'total_games': total_games,
@@ -162,8 +226,8 @@ def get_global_statistics():
             'good_rate': (good_count / total_games) * 100,
             'okay_count': okay_count,
             'okay_rate': (okay_count / total_games) * 100,
-            'poor_count': poor_count,  # 새로 추가
-            'poor_rate': (poor_count / total_games) * 100,  # 새로 추가
+            'poor_count': poor_count,
+            'poor_rate': (poor_count / total_games) * 100,
             'accuracy_list': accuracy_list,
             'average_accuracy': sum(accuracy_list) / len(accuracy_list)
         }
@@ -183,18 +247,14 @@ def get_user_rank(user_accuracy, accuracy_list):
     better_scores = len([acc for acc in accuracy_list if acc > user_accuracy])
     same_scores = len([acc for acc in accuracy_list if acc == user_accuracy])
     
-    # 동점자의 중간 순위 계산
     rank = better_scores + (same_scores + 1) / 2
     percentile = (rank / len(accuracy_list)) * 100
     
     return f"상위 {percentile:.1f}%"
 
-
-
-# 나머지 기존 코드들은 동일
-# 세션 상태 초기화
+# 세션 상태 초기화 (기존 코드와 동일)
 if 'game_state' not in st.session_state:
-    st.session_state.game_state = 'setup'  # setup, playing, finished
+    st.session_state.game_state = 'setup'
 if 'current_question' not in st.session_state:
     st.session_state.current_question = 1
 if 'correct_count' not in st.session_state:
@@ -217,6 +277,7 @@ if 'best_streak' not in st.session_state:
     st.session_state.best_streak = 0
 if 'current_streak' not in st.session_state:
     st.session_state.current_streak = 0
+
 def generate_question(operation_type):
     """문제 생성 함수"""
     num1 = random.randint(10, 99)
@@ -226,7 +287,6 @@ def generate_question(operation_type):
         operator = "+"
         answer = num1 + num2
     elif operation_type == "뺄셈":
-        # 결과가 음수가 되지 않도록 큰 수에서 작은 수를 빼기
         if num1 < num2:
             num1, num2 = num2, num1
         operator = "-"
@@ -268,7 +328,7 @@ def check_answer():
             time_limit = st.session_state.get('time_limit', 5)
             if elapsed_time > time_limit:
                 st.session_state.current_streak = 0
-                return False, f"⏰ {time_limit}초가 지났습니다! 다음 문제로 넘어갑니다."
+                return False, f"⏳ {time_limit}초가 지났습니다! 다음 문제로 넘어갑니다."
         
         user_input = int(st.session_state.user_answer)
         current_q_idx = st.session_state.current_question - 1
@@ -326,81 +386,37 @@ def reset_game():
     st.session_state.start_time = None
 
 # 메인 UI
-st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
-    st.markdown("<h3 style='text-align: center;'>🎯 게임 설정</h3>", unsafe_allow_html=True)
+    st.markdown("### ⚙️ 게임 설정")
     
- 
-    
-    # 세션 상태 초기화
     if 'question_count' not in st.session_state:
         st.session_state.question_count = 10
     if 'time_limit' not in st.session_state:
         st.session_state.time_limit = 5
     
-    # 메인 화면에서 설정
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        # '게임 규칙 살펴보기' expander를 col2 안으로 이동
-        with st.expander("📚 게임 규칙 살펴보기"):
+        with st.expander("💡 게임 규칙 살펴보기"):
             st.markdown("""
-        * **연산 타입**을 선택하고 **문제 개수**와 **제한 시간**을 설정하세요.
-        * 주어진 시간 안에 정답을 입력하고 **제출** 버튼을 누르세요.
-        * 시간이 지나면 자동으로 다음 문제로 넘어갑니다.
-        * 게임이 끝나면 당신의 점수와 전체 사용자 통계를 확인할 수 있습니다!
-        """)
-    
+            * **연산 타입**을 선택하고 **문제 개수**와 **제한 시간**을 설정하세요.
+            * 주어진 시간 안에 정답을 입력하고 **제출** 버튼을 누르세요.
+            * 시간이 지나면 자동으로 다음 문제로 넘어갑니다.
+            * 게임이 끝나면 당신의 점수와 전체 사용자 통계를 확인할 수 있습니다!
+            """)
+        
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 연산 타입 선택
         operation_type = st.selectbox(
-            "📝 연산 타입",
+            "➕➖ 연산 타입",
             ["덧셈", "뺄셈", "랜덤 (덧셈+뺄셈)"]
         )
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 문제 개수 설정
-        st.markdown("**📊 문제 개수**")
-        
-         # CSS로 강제 가로 배치
-        st.markdown("""
-        <style>
-        .question-controls {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        .question-controls > div {
-            flex: none !important;
-        }
-        .question-controls button {
-            width: 50px !important;
-            height: 50px !important;
-            min-width: 50px !important;
-            border-radius: 10px !important;
-            font-size: 20px !important;
-        }
-        .question-display {
-            min-width: 56px;
-            width: 70%;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 14px;
-            background: black; /* 배경색을 검정색으로 변경 */
-            color: white; /* 글자색을 흰색으로 변경 */
-            border-radius: 10px;
-            margin: 0 auto;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # 문제 개수 설정 UI
+        st.markdown("### 🔢 문제 개수")
         col_minus, col_text, col_plus = st.columns([1, 1, 1])
         
         with col_minus:
@@ -421,14 +437,9 @@ if st.session_state.game_state == 'setup':
                     st.session_state.question_count += 1
                     st.rerun()
         
-        
-        
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 제한시간 설정
-        st.markdown("**⏰ 제한시간**")
-        
-        # 제한시간 설정 UI
+        st.markdown("### ⏱️ 제한시간")
         col_minus, col_text, col_plus = st.columns([1, 1, 1])
 
         with col_minus:
@@ -449,53 +460,43 @@ if st.session_state.game_state == 'setup':
                     st.session_state.time_limit += 1
                     st.rerun()
         
-        
         st.markdown("<br><br>", unsafe_allow_html=True)
         
-        # 게임 시작 버튼
         if st.button("🚀 게임 시작!", use_container_width=True, type="primary"):
             start_game(operation_type, st.session_state.question_count)
             st.rerun()
 
 # 게임 진행 단계
 elif st.session_state.game_state == 'playing':
-    # 자동 포커스 JavaScript 실행
     auto_focus_input()
     
-    # 진행률 표시
     progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
     st.progress(progress)
     
-    # 현재 문제 정보
     current_q_idx = st.session_state.current_question - 1
     num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
     
-    # 점수 표시
     accuracy = (st.session_state.correct_count / (st.session_state.current_question - 1) * 100) if st.session_state.current_question > 1 else 0
     
     st.markdown(f"""
-    <div style='text-align: right; margin-bottom: 5px; margin-top: -20px;'>
-      <div style='font-size: 0.75rem; color: #666; margin-bottom: 0px;'>
-        문제: <span style='font-weight: bold; color: #333;'>{st.session_state.current_question}/{len(st.session_state.questions)}</span> | 
-        정답: <span style='font-weight: bold; color: #333;'>{st.session_state.correct_count}</span> | 
-        정답률: <span style='font-weight: bold; color: #333;'>{accuracy:.1f}%</span>
-      </div>
+    <div class='score-metrics'>
+      문제: <span>{st.session_state.current_question}/{len(st.session_state.questions)}</span> | 
+      정답: <span>{st.session_state.correct_count}</span> | 
+      정답률: <span>{accuracy:.1f}%</span>
     </div>
     """, unsafe_allow_html=True)
     
-    # 문제 출제
-    st.markdown(f"<h3 style='margin-top: 5px; margin-bottom: 5px;'>문제 {st.session_state.current_question}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='margin-top: 0px; margin-bottom: 10px;'>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
+    st.markdown(f"### 문제 {st.session_state.current_question}")
+    st.markdown(f"<h2>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
     
-    # 경과 시간 표시
     if 'question_start_time' in st.session_state:
         elapsed = time.time() - st.session_state.question_start_time
         time_limit = st.session_state.get('time_limit', 5)
         remaining = max(0, time_limit - elapsed)
         if remaining > 0:
-            st.markdown(f"<h3 style='margin-top: 0px; margin-bottom: 10px;'>⏰ 남은 시간: {remaining:.1f}초</h3>", unsafe_allow_html=True)
+            st.markdown(f"### ⏱️ 남은 시간: {remaining:.1f}초")
         else:
-            st.markdown("<h3 style='margin-top: 0px; margin-bottom: 10px;'>⏰ 시간 초과!</h3>", unsafe_allow_html=True)
+            st.markdown("### ⏳ 시간 초과!")
     
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input(
@@ -505,67 +506,61 @@ elif st.session_state.game_state == 'playing':
         )
         submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
 
-        
         if submitted:
             st.session_state.user_answer = user_input
             is_correct, message = check_answer()
             
             if "초가 지났습니다" in message:
-                st.warning(f"⏰ {message}")
+                st.warning(f"⏳ {message}")
             elif is_correct:
-                st.success(f"✅ {message}")
+                st.success(f"✔️ {message}")
             else:
-                st.error(f"❌ {message}")
+                st.error(f"✖️ {message}")
             
             time.sleep(1.0)
             next_question()
             st.rerun()
     
-    # 게임 중단 버튼
     if st.button("🔄 게임 리셋", type="secondary"):
         reset_game()
         st.rerun()
 
 # 게임 완료 단계
 elif st.session_state.game_state == 'finished':
-    st.balloons()  # 축하 애니메이션
+    st.balloons()
     
-    # 최종 결과
     total_questions = len(st.session_state.questions)
     accuracy = (st.session_state.correct_count / total_questions) * 100
     
-    st.markdown("<h2 style='margin-top: -20px; margin-bottom: 10px;'>🎉 게임 완료!</h2>", unsafe_allow_html=True)
+    st.markdown("## ✨ 게임 완료!")
     
-    # 개인 결과 표시
     st.markdown(f"""
     <div style='text-align: center; margin-bottom: 10px;'>
-      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-        총 문제 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{total_questions}개</span>
+      <div>
+        총 문제 수: <b>{total_questions}개</b>
       </div>
-      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-        정답 수: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{st.session_state.correct_count}개</span>
+      <div>
+        정답 수: <b>{st.session_state.correct_count}개</b>
       </div>
-      <div style='font-size: 0.9rem; color: #666; margin-bottom: 8px;'>
-        정답률: <span style='font-weight: bold; color: #333; font-size: 1.1rem;'>{accuracy:.1f}%</span>
+      <div>
+        정답률: <b>{accuracy:.1f}%</b>
       </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # 성적에 따른 메시지
     if accuracy == 100:
-        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: green; margin: 0;'>🏆 완벽합니다! 천재군요!</h4></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center;'><h4 style='color: green;'>🏆 완벽합니다! 천재군요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 90:
-        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: green; margin: 0;'>🌟 훌륭해요!</h4></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center;'><h4 style='color: green;'>🌟 훌륭해요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 80:
-        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: blue; margin: 0;'>👍 잘했어요!</h4></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center;'><h4 style='color: blue;'>👍 잘했어요!</h4></div>", unsafe_allow_html=True)
     elif accuracy >= 70:
-        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: orange; margin: 0;'>💪 조금만 더 연습하면 완벽해질 거예요!</h4></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center;'><h4 style='color: orange;'>💪 조금만 더 연습하면 완벽해질 거예요!</h4></div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div style='text-align: center; margin-bottom: 15px;'><h4 style='color: red; margin: 0;'>📚 더 연습해보세요!</h4></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center;'><h4 style='color: red;'>📚 더 연습해보세요!</h4></div>", unsafe_allow_html=True)
     
-    # 전체 사용자 통계 표시
     st.markdown("---")
-    st.markdown("### 📊 실시간 전체 사용자 통계")
+    st.markdown("### 📈 실시간 전체 사용자 통계")
     
     if SHEETS_ENABLED:
         with st.spinner("전체 통계를 불러오는 중..."):
@@ -575,7 +570,6 @@ elif st.session_state.game_state == 'finished':
         st.warning("⚠️ Google Sheets가 연결되지 않아 전체 통계를 표시할 수 없습니다.")
     
     if global_stats:
-        # 전체 통계 표시
         st.markdown(f"""
         <div style='background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
           <div style='text-align: center; margin-bottom: 15px;'>
@@ -632,7 +626,6 @@ elif st.session_state.game_state == 'finished':
             st.markdown("<div style='text-align: center;'><h4 style='color: orange;'>📚 더 연습하면 더욱 좋아질 거예요!</h4></div>", unsafe_allow_html=True)
     
     else:
-        # 통계 로딩 실패시 로컬 통계 표시 (백업)
         if st.session_state.total_games > 0:
             overall_accuracy = (st.session_state.total_correct / st.session_state.total_questions) * 100
             st.markdown(f"""
@@ -651,17 +644,16 @@ elif st.session_state.game_state == 'finished':
         else:
             st.markdown("<div style='text-align: center; color: #666;'>📊 전체 통계 준비 중...</div>", unsafe_allow_html=True)
     
-    # 다시하기 버튼
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🔄 다시 하기", use_container_width=True, type="primary"):
             reset_game()
             st.rerun()
     with col2:
-        if st.button("⚙️ 설정 변경", use_container_width=True, type="secondary"):
+        if st.button("🛠️ 설정 변경", use_container_width=True, type="secondary"):
             reset_game()
             st.rerun()
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit")
+st.markdown("<div style='text-align: center;'>Made with ❤️ using Streamlit</div>", unsafe_allow_html=True)
