@@ -330,7 +330,7 @@ st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 
 
 # 게임 설정 단계
 if st.session_state.game_state == 'setup':
-    st.markdown("<h2 style='text-align: center;'>🎯 게임 설정</h2>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>🎯 게임 설정</h3>", unsafe_allow_html=True)
     
     # --- 여기에 추가 ---
     with st.expander("📚 게임 규칙 살펴보기"):
