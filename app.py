@@ -60,6 +60,8 @@ st.markdown("""
     :root {
         --primary-color: #007bff; /* 파란색 계열 */
         --success-color: #28a745; /* 초록색 */
+        --warning-color: #ffc107; /* 노란색 */
+        --danger-color: #dc3545; /* 빨간색 */
     }
     
     /* 버튼에 그림자 및 둥근 모서리 적용 */
@@ -111,11 +113,6 @@ st.markdown("""
         text-align: center;
     }
 
-    /* 게임 설정 영역의 아이콘을 텍스트와 분리 */
-    .icon-spacing {
-        margin-right: 5px;
-    }
-
     /* st.metric 중앙 정렬 */
     div[data-testid="stMetric"] {
         text-align: center;
@@ -143,6 +140,17 @@ st.markdown("""
         div[data-testid="stMetricValue"] {
             font-size: 2rem !important;
         }
+    }
+    
+    /* 게임 플레이 중 상단 고정 헤더 */
+    .game-header-container {
+        position: sticky;
+        top: 0;
+        background-color: white; /* 배경색을 명시적으로 설정 */
+        z-index: 999; /* 다른 요소 위에 표시되도록 설정 */
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0; /* 헤더와 본문 분리선 */
+        margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -483,35 +491,51 @@ if st.session_state.game_state == 'setup':
 elif st.session_state.game_state == 'playing':
     auto_focus_input()
     
-    progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
-    st.progress(progress)
+    # 상단 고정 헤더 컨테이너
+    st.markdown('<div class="game-header-container">', unsafe_allow_html=True)
     
-    current_q_idx = st.session_state.current_question - 1
-    num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
+    # 문제 진행 상황 시각화
+    progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
+    st.progress(progress, text=f"문제 {st.session_state.current_question}/{len(st.session_state.questions)}")
     
     accuracy = (st.session_state.correct_count / (st.session_state.current_question - 1) * 100) if st.session_state.current_question > 1 else 0
     
-    # st.metric을 사용하여 진행 상황 시각화
     col1, col2 = st.columns(2)
     with col1:
         st.metric(label="✔️ 정답 수", value=f"{st.session_state.correct_count}")
     with col2:
         st.metric(label="📈 정답률", value=f"{accuracy:.1f}%")
         
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    current_q_idx = st.session_state.current_question - 1
+    num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
+
+    # 시간 초과 시각화
+    time_limit = st.session_state.get('time_limit', 5)
+    elapsed = time.time() - st.session_state.question_start_time
+    remaining = max(0, time_limit - elapsed)
+    
     st.markdown("---")
 
     st.markdown(f"### 문제 {st.session_state.current_question}")
     st.markdown(f"<h2>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
     
-    if 'question_start_time' in st.session_state:
-        elapsed = time.time() - st.session_state.question_start_time
-        time_limit = st.session_state.get('time_limit', 5)
-        remaining = max(0, time_limit - elapsed)
-        if remaining > 0:
-            st.markdown(f"### ⏱️ 남은 시간: {remaining:.1f}초")
-        else:
-            st.markdown("### ⏳ 시간 초과!")
+    # 카운트다운 진행 바
+    time_progress_bar = st.progress(0, text=f"⏱️ 남은 시간: {remaining:.1f}초")
+    time_progress = 1 - (remaining / time_limit)
+    time_progress_bar.progress(time_progress)
     
+    if remaining <= 0:
+        time_progress_bar.empty()
+        st.warning("⏳ 시간 초과! 다음 문제로 넘어갑니다.")
+        time.sleep(1.0)
+        st.session_state.current_streak = 0
+        next_question()
+        st.rerun()
+    else:
+        time_progress_bar.progress(1 - remaining / time_limit, text=f"⏱️ 남은 시간: {remaining:.1f}초")
+
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input(
             "답을 입력하세요:", 
