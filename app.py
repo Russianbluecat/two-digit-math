@@ -7,7 +7,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Google Analytics 추가
+# Add Google Analytics
 def add_google_analytics():
     ga_code = """
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Q1S1M127P"></script>
@@ -20,100 +20,95 @@ def add_google_analytics():
     """
     st.markdown(ga_code, unsafe_allow_html=True)
 
-# 자동 포커스 함수 추가
+# Add auto-focus function
 def auto_focus_input():
-    """입력 필드에 자동으로 포커스를 설정하는 JavaScript 코드"""
+    """JavaScript to automatically focus on the input field."""
     js_code = """
     <script>
     function focusInput() {
-        // 입력 필드를 찾아서 포커스 설정
         const inputs = window.parent.document.querySelectorAll('input[type="text"]');
         if (inputs.length > 0) {
-            // 가장 마지막 입력 필드에 포커스 (보통 답변 입력 필드)
             const lastInput = inputs[inputs.length - 1];
             lastInput.focus();
-            lastInput.select(); // 기존 텍스트가 있다면 선택
+            lastInput.select();
         }
     }
     
-    // 페이지 로드 후 실행
     setTimeout(focusInput, 100);
-    
-    // 또한 폼이 업데이트된 후에도 실행
     setTimeout(focusInput, 300);
     setTimeout(focusInput, 500);
     </script>
     """
     st.markdown(js_code, unsafe_allow_html=True)
 
-# 페이지 설정
+# Page configuration
 st.set_page_config(
     page_title="두 자리 수 암산 게임",
     page_icon="🧮",
     layout="centered"
 )
 
-# 커스텀 CSS 스타일 추가
+# Custom CSS styles
 st.markdown("""
 <style>
-    /* 기본 테마 색상 재정의 */
+    /* Override base theme colors */
     :root {
-        --primary-color: #007bff; /* 파란색 계열 */
-        --success-color: #28a745; /* 초록색 */
-        --warning-color: #ffc107; /* 노란색 */
-        --danger-color: #dc3545; /* 빨간색 */
+        --primary-color: #007bff; /* Blue */
+        --success-color: #28a745; /* Green */
+        --warning-color: #ffc107; /* Yellow */
+        --danger-color: #dc3545; /* Red */
     }
     
-    /* 버튼에 그림자 및 둥근 모서리 적용 */
+    /* Button styling with shadows and rounded corners */
     div.stButton > button {
         border-radius: 12px;
         box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
     }
     
-    /* 버튼 hover 효과 */
+    /* Button hover effect */
     div.stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
     }
     
-    /* 기본 버튼 색상 */
+    /* Default button color */
     .stButton button {
         border: 1px solid var(--primary-color);
         color: var(--primary-color);
         background-color: transparent;
     }
     
-    /* primary 버튼 색상 */
+    /* Primary button color */
     .stButton button.primary {
         background-color: var(--primary-color);
         color: white;
     }
 
-    /* secondary 버튼 색상 */
+    /* Secondary button color */
     .stButton button.secondary {
         background-color: #6c757d;
         color: white;
     }
     
-    /* text_input에 그림자 및 둥근 모서리 적용 */
+    /* Text input styling */
     .stTextInput > div > div > input {
         border-radius: 12px;
         box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
         border: 1px solid #ccc;
     }
     
-    /* expander 아이콘 색상 변경 */
+    /* Expander icon color */
     .streamlit-expanderHeader i {
         color: var(--primary-color);
     }
     
-    /* 제목 중앙 정렬 및 폰트 크기 조정 */
+    /* Center align titles and adjust font size */
     h1, h2, h3, h4, h5, h6 {
         text-align: center;
     }
 
-    /* st.metric 중앙 정렬 */
+    /* st.metric center alignment */
     div[data-testid="stMetric"] {
         text-align: center;
     }
@@ -125,7 +120,7 @@ st.markdown("""
         font-size: 1rem;
     }
     
-    /* 반응형 디자인: 작은 화면에서 폰트 크기 및 버튼 간격 조절 */
+    /* Responsive design for smaller screens */
     @media (max-width: 768px) {
         h1, h2 {
             font-size: 1.5rem;
@@ -142,23 +137,32 @@ st.markdown("""
         }
     }
     
-    /* 게임 플레이 중 상단 고정 헤더 */
+    /* Sticky header for game progress */
     .game-header-container {
         position: sticky;
         top: 0;
-        background-color: white; /* 배경색을 명시적으로 설정 */
-        z-index: 999; /* 다른 요소 위에 표시되도록 설정 */
+        background-color: white;
+        z-index: 999;
         padding: 10px 0;
-        border-bottom: 1px solid #e0e0e0; /* 헤더와 본문 분리선 */
+        border-bottom: 1px solid #e0e0e0;
         margin-bottom: 20px;
     }
+    
+    /* Custom style for number displays */
+    .number-display {
+        font-size: 1.8rem;
+        font-weight: bold;
+        text-align: center;
+        padding-top: 10px;
+    }
+    
 </style>
 """, unsafe_allow_html=True)
 
-# Google Analytics 활성화
+# Add Google Analytics
 add_google_analytics()
 
-# Google Sheets 설정 (서비스 계정으로 변경)
+# Google Sheets setup
 try:
     scope = ['https://www.googleapis.com/auth/spreadsheets',
              'https://www.googleapis.com/auth/drive']
@@ -175,7 +179,7 @@ except Exception as e:
     st.warning("⚠️ Google Sheets 설정이 필요합니다. 로컬 저장만 사용됩니다.")
     st.error(f"설정 오류: {str(e)}")
 
-# Google Sheets 관련 함수들 (기존 코드와 동일)
+# Google Sheets related functions
 def save_game_result(total_questions, correct_count, accuracy, operation_type, time_limit, elapsed_time):
     if not SHEETS_ENABLED:
         st.warning("⚠️ Google Sheets가 설정되지 않아 결과를 저장할 수 없습니다.")
@@ -275,7 +279,7 @@ def get_user_rank(user_accuracy, accuracy_list):
     
     return f"상위 {percentile:.1f}%"
 
-# 세션 상태 초기화
+# Initialize session state
 if 'game_state' not in st.session_state:
     st.session_state.game_state = 'setup'
 if 'current_question' not in st.session_state:
@@ -403,10 +407,10 @@ def reset_game():
     st.session_state.user_answer = ""
     st.session_state.start_time = None
 
-# 메인 UI
+# Main UI
 st.markdown("<h2 style='text-align: center;'>🧮 두 자리 수 암산 게임</h2>", unsafe_allow_html=True)
 
-# 게임 설정 단계
+# Game setup phase
 if st.session_state.game_state == 'setup':
     st.markdown("### ⚙️ 게임 설정")
     
@@ -435,7 +439,7 @@ if st.session_state.game_state == 'setup':
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 문제 개수와 제한시간 설정 부분을 컨테이너로 묶음
+        # Container for question count and time limit settings
         with st.container():
             st.markdown("### 🔢 문제 개수")
             col_minus, col_text, col_plus = st.columns([1, 1, 1])
@@ -487,14 +491,14 @@ if st.session_state.game_state == 'setup':
             start_game(operation_type, st.session_state.question_count)
             st.rerun()
 
-# 게임 진행 단계
+# Game playing phase
 elif st.session_state.game_state == 'playing':
     auto_focus_input()
     
-    # 상단 고정 헤더 컨테이너
+    # Sticky header container
     st.markdown('<div class="game-header-container">', unsafe_allow_html=True)
     
-    # 문제 진행 상황 시각화
+    # Visualize progress with sticky header
     progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
     st.progress(progress, text=f"문제 {st.session_state.current_question}/{len(st.session_state.questions)}")
     
@@ -511,7 +515,7 @@ elif st.session_state.game_state == 'playing':
     current_q_idx = st.session_state.current_question - 1
     num1, num2, operator, correct_answer = st.session_state.questions[current_q_idx]
 
-    # 시간 초과 시각화
+    # Countdown progress bar
     time_limit = st.session_state.get('time_limit', 5)
     elapsed = time.time() - st.session_state.question_start_time
     remaining = max(0, time_limit - elapsed)
@@ -521,7 +525,7 @@ elif st.session_state.game_state == 'playing':
     st.markdown(f"### 문제 {st.session_state.current_question}")
     st.markdown(f"<h2>{num1} {operator} {num2} = ?</h2>", unsafe_allow_html=True)
     
-    # 카운트다운 진행 바
+    # Display the countdown progress bar
     time_progress_bar = st.progress(0, text=f"⏱️ 남은 시간: {remaining:.1f}초")
     time_progress = 1 - (remaining / time_limit)
     time_progress_bar.progress(time_progress)
@@ -534,7 +538,8 @@ elif st.session_state.game_state == 'playing':
         next_question()
         st.rerun()
     else:
-        time_progress_bar.progress(1 - remaining / time_limit, text=f"⏱️ 남은 시간: {remaining:.1f}초")
+        time.sleep(0.1)
+        st.rerun()
 
     with st.form(key=f"question_{st.session_state.current_question}"):
         user_input = st.text_input(
@@ -563,7 +568,7 @@ elif st.session_state.game_state == 'playing':
         reset_game()
         st.rerun()
 
-# 게임 완료 단계
+# Game finished phase
 elif st.session_state.game_state == 'finished':
     st.balloons()
     
@@ -692,6 +697,6 @@ elif st.session_state.game_state == 'finished':
             reset_game()
             st.rerun()
 
-# 푸터
+# Footer
 st.markdown("---")
 st.markdown("<div style='text-align: center;'>Made with ❤️ using Streamlit</div>", unsafe_allow_html=True)
