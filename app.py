@@ -189,27 +189,7 @@ def get_user_rank(user_accuracy, accuracy_list):
     
     return f"상위 {percentile:.1f}%"
 
-# 테스트 함수 추가
-def test_google_sheets_connection():
-    """Google Sheets 연결 테스트"""
-    st.markdown("### 🔧 Google Sheets 연결 테스트")
-    
-    if st.button("연결 테스트 실행"):
-        if not SHEETS_ENABLED:
-            st.error("❌ Google Sheets가 연결되지 않았습니다.")
-            return
-            
-        try:
-            # 시트 제목 가져오기 테스트
-            title = spreadsheet.title
-            st.success(f"✅ 연결 성공!")
-            st.success(f"📊 스프레드시트 제목: {title}")
-            
-            # 시트 정보 표시
-            sheet_names = [s.title for s in spreadsheet.worksheets()]
-            st.info(f"📝 시트 목록: {', '.join(sheet_names)}")
-        except Exception as e:
-            st.error(f"❌ 테스트 실패: {str(e)}")
+
 
 # 나머지 기존 코드들은 동일
 # 세션 상태 초기화
