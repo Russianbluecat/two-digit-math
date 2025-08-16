@@ -21,6 +21,32 @@ def add_google_analytics():
     """
     st.markdown(ga_code, unsafe_allow_html=True)
 
+# 자동 포커스 함수 추가
+def auto_focus_input():
+    """입력 필드에 자동으로 포커스를 설정하는 JavaScript 코드"""
+    js_code = """
+    <script>
+    function focusInput() {
+        // 입력 필드를 찾아서 포커스 설정
+        const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+        if (inputs.length > 0) {
+            // 가장 마지막 입력 필드에 포커스 (보통 답변 입력 필드)
+            const lastInput = inputs[inputs.length - 1];
+            lastInput.focus();
+            lastInput.select(); // 기존 텍스트가 있다면 선택
+        }
+    }
+    
+    // 페이지 로드 후 실행
+    setTimeout(focusInput, 100);
+    
+    // 또한 폼이 업데이트된 후에도 실행
+    setTimeout(focusInput, 300);
+    setTimeout(focusInput, 500);
+    </script>
+    """
+    st.markdown(js_code, unsafe_allow_html=True)
+
 # 페이지 설정
 st.set_page_config(
     page_title="두 자리 수 암산 게임",
@@ -440,6 +466,9 @@ if st.session_state.game_state == 'setup':
 
 # 게임 진행 단계
 elif st.session_state.game_state == 'playing':
+    # 자동 포커스 JavaScript 실행
+    auto_focus_input()
+    
     # 진행률 표시
     progress = (st.session_state.current_question - 1) / len(st.session_state.questions)
     st.progress(progress)
@@ -476,7 +505,11 @@ elif st.session_state.game_state == 'playing':
             st.markdown("<h3 style='margin-top: 0px; margin-bottom: 10px;'>⏰ 시간 초과!</h3>", unsafe_allow_html=True)
     
     with st.form(key=f"question_{st.session_state.current_question}"):
-        user_input = st.text_input("답을 입력하세요:", key="answer_input")
+        user_input = st.text_input(
+            "답을 입력하세요:", 
+            key="answer_input",
+            placeholder="숫자를 입력하세요"
+        )
         submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
 
         
