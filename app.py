@@ -332,15 +332,7 @@ st.markdown("<h2 style='text-align: center; font-size: 1.8rem;'>🧮 두 자리 
 if st.session_state.game_state == 'setup':
     st.markdown("<h3 style='text-align: center;'>🎯 게임 설정</h3>", unsafe_allow_html=True)
     
-    # --- 여기에 추가 ---
-    with st.expander("📚 게임 규칙 살펴보기"):
-        st.markdown("""
-        * **연산 타입**을 선택하고 **문제 개수**와 **제한 시간**을 설정하세요.
-        * 주어진 시간 안에 정답을 입력하고 **제출** 버튼을 누르세요.
-        * 시간이 지나면 자동으로 다음 문제로 넘어갑니다.
-        * 게임이 끝나면 당신의 점수와 전체 사용자 통계를 확인할 수 있습니다!
-        """)
-
+ 
     
     # 세션 상태 초기화
     if 'question_count' not in st.session_state:
@@ -351,6 +343,17 @@ if st.session_state.game_state == 'setup':
     # 메인 화면에서 설정
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
+        # '게임 규칙 살펴보기' expander를 col2 안으로 이동
+        with st.expander("📚 게임 규칙 살펴보기"):
+            st.markdown("""
+        * **연산 타입**을 선택하고 **문제 개수**와 **제한 시간**을 설정하세요.
+        * 주어진 시간 안에 정답을 입력하고 **제출** 버튼을 누르세요.
+        * 시간이 지나면 자동으로 다음 문제로 넘어갑니다.
+        * 게임이 끝나면 당신의 점수와 전체 사용자 통계를 확인할 수 있습니다!
+        """)
+    
+        st.markdown("<br>", unsafe_allow_html=True)
+        
         # 연산 타입 선택
         operation_type = st.selectbox(
             "📝 연산 타입",
