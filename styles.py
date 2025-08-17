@@ -207,20 +207,115 @@ def get_auto_focus_script():
     return """
     <script>
     function focusInput() {
-        const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-        if (inputs.length > 0) {
-            const lastInput = inputs[inputs.length - 1];
-            lastInput.focus();
-            lastInput.select();
+        try {
+            // Streamlit iframe 환경에서 document 접근
+            const doc = window.parent ? window.parent.document : document;
+            
+            // 활성화된 text input 찾기 (readonly가 아닌 것들만)
+            const inputs = doc.querySelectorAll('input[type="text"]:not([readonly]):not([disabled])');
+            
+            if (inputs.length > 0) {
+                const lastInput = inputs[inputs.length - 1];
+                
+                // 포커스가 이미 있는지 확인
+                if (doc.activeElement !== lastInput) {
+                    lastInput.focus();
+                    
+                    // 기존 값이 있으면 선택, 없으면 커서만 설정
+                    if (lastInput.value && lastInput.value.trim() !== '') {
+                        lastInput.select();
+                    }
+                }
+                return true;
+            }
+            return false;
+        } catch (e) {
+            // iframe 접근 실패시 일반 document 사용
+            try {
+                const inputs = document.querySelectorAll('input[type="text"]:not([readonly]):not([disabled])');
+                if (inputs.length > 0) {
+                    const lastInput = inputs[inputs.length - 1];
+                    if (document.activeElement !== lastInput) {
+                        lastInput.focus();
+                        if (lastInput.value && lastInput.value.trim() !== '') {
+                            lastInput.select();
+                        }
+                    }
+                    return true;
+                }
+            } catch (e2) {
+                console.log('Focus failed:', e2);
+            }
+            return false;
         }
     }
     
-    setTimeout(focusInput, 100);
-    setTimeout(focusInput, 300);
-    setTimeout(focusInput, 500);
-    setTimeout(focusInput, 800);
-    setTimeout(focusInput, 1000);
-    setTimeout(focusInput, 1500);
-    setTimeout(focusInput, 2000);
+    // 즉시 실행
+    focusInput();
+    
+    // 여러 시점에서 재시도 (Streamlit 리렌더링 대응)
+    const timeouts = [50, 100, 200, 300, 500, 800, 1000, 1500];
+    timeouts.forEach(delay => {
+        setTimeout(() => {
+            if (!focusInput()) {
+                // 실패시 한 번 더 시도
+                setTimeout(focusInput, 100);
+            }
+        }, delay);
+    });
+    
+    // DOM 변경 감지 및 자동 포커스
+    function setupMutationObserver() {
+        const doc = window.parent ? window.parent.document : document;
+        
+        const observer = new MutationObserver(function(mutations) {
+            let shouldFocus = false;
+            
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    // 새로운 input이 추가되었는지 확인
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.matches && node.matches('input[type="text"]')) {
+                                shouldFocus = true;
+                            } else if (node.querySelector) {
+                                const inputs = node.querySelectorAll('input[type="text"]');
+                                if (inputs.length > 0) {
+                                    shouldFocus = true;
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+            
+            if (shouldFocus) {
+                setTimeout(focusInput, 50);
+                setTimeout(focusInput, 150);
+            }
+        });
+        
+        observer.observe(doc.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // 5초 후 observer 정리 (메모리 누수 방지)
+        setTimeout(() => observer.disconnect(), 5000);
+    }
+    
+    // DOM이 준비된 후 observer 설정
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupMutationObserver);
+    } else {
+        setupMutationObserver();
+    }
+    
+    // 추가 보험: 페이지 visibility 변경시에도 포커스 시도
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            setTimeout(focusInput, 100);
+        }
+    });
     </script>
     """
