@@ -10,6 +10,7 @@ from game_logic import game_session, QuestionGenerator
 from sheets_manager import sheets_manager
 from ui_components import game_setup_ui, game_play_ui, game_result_ui, common_ui
 from validation import input_validator
+import streamlit.components.v1 as components 
 
 class GameStates:
     """게임 상태 상수"""
@@ -104,7 +105,8 @@ def handle_game_setup():
 def handle_game_play():
     """게임 플레이 화면 처리"""
     # 자동 포커스 스크립트 적용
-    st.markdown(get_auto_focus_script(), unsafe_allow_html=True)
+    #st.markdown(get_auto_focus_script(), unsafe_allow_html=True)
+    components.html(get_auto_focus_script(), height=0)
     
     # 현재 문제 가져오기
     current_question = game_session.get_current_question()
