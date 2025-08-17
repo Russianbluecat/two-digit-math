@@ -25,7 +25,7 @@ def get_custom_css():
         div.stButton > button:hover {
             transform: translateY(-2px);
             box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
-            background-color: #ff0000 !important;  /* 더 진한 빨간색 */
+            background-color: #dc3545 !important;  /* 더 진한 빨간색 */
             color: white !important;               /* 흰 글씨 */
             border-color: #ff0000 !important;      /* 빨간 테두리 */
         }
