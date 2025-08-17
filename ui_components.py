@@ -110,19 +110,148 @@ class GamePlayUI:
                 placeholder="숫자를 입력하세요"
             )
             submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
-    
-        # 간단한 포커스 스크립트
-        st.components.v1.html("""
+        
+        # 정교한 포커스 스크립트 - 특정 input 타겟팅
+        st.components.v1.html(f"""
             <script>
-            setTimeout(function() {
-                const inputs = (window.parent || window).document.querySelectorAll('input[type="text"]');
-                if (inputs.length > 0) {
-                    inputs[inputs.length - 1].focus();
-                }
-            }, 100);
+            (function() {{
+                let attemptCount = 0;
+                const maxAttempts = 15;
+                const questionKey = "{question_key}";
+                
+                function focusSpecificInput() {{
+                    attemptCount++;
+                    console.log(`포커스 시도 ${{attemptCount}}/${{maxAttempts}} - 문제 ${{questionKey}}`);
+                    
+                    try {{
+                        const doc = window.parent ? window.parent.document : document;
+                        let targetInput = null;
+                        
+                        // 방법 1: 현재 문제의 특정 input 찾기 (key 기반)
+                        const keySelectors = [
+                            `input[data-testid*="answer_input_${{questionKey}}"]`,
+                            `input[aria-label*="답을 입력하세요"]`,
+                            `input[placeholder*="숫자를 입력하세요"]`
+                        ];
+                        
+                        for (const selector of keySelectors) {{
+                            targetInput = doc.querySelector(selector);
+                            if (targetInput) {{
+                                console.log(`선택자로 찾음: ${{selector}}`);
+                                break;
+                            }}
+                        }}
+                        
+                        // 방법 2: 폼 컨테이너 내부에서 찾기
+                        if (!targetInput) {{
+                            const forms = doc.querySelectorAll('form[data-testid*="question_${{questionKey}}"], form[data-testid*="form"]');
+                            for (const form of forms) {{
+                                const formInput = form.querySelector('input[type="text"]');
+                                if (formInput) {{
+                                    targetInput = formInput;
+                                    console.log('폼 내부에서 찾음');
+                                    break;
+                                }}
+                            }}
+                        }}
+                        
+                        // 방법 3: 가장 최근 활성 input (fallback)
+                        if (!targetInput) {{
+                            const allInputs = Array.from(doc.querySelectorAll('input[type="text"]:not([readonly]):not([disabled])'));
+                            // 보이는 input만 필터링
+                            const visibleInputs = allInputs.filter(input => {{
+                                const rect = input.getBoundingClientRect();
+                                return rect.width > 0 && rect.height > 0;
+                            }});
+                            
+                            if (visibleInputs.length > 0) {{
+                                targetInput = visibleInputs[visibleInputs.length - 1];
+                                console.log('최근 활성 input 사용');
+                            }}
+                        }}
+                        
+                        // 포커스 적용
+                        if (targetInput && doc.activeElement !== targetInput) {{
+                            targetInput.focus();
+                            
+                            // 기존 값이 있으면 선택, 없으면 커서만 설정
+                            setTimeout(() => {{
+                                if (targetInput.value && targetInput.value.trim() !== '') {{
+                                    targetInput.select();
+                                }}
+                            }}, 10);
+                            
+                            console.log(`✅ 포커스 성공: 문제 ${{questionKey}}`);
+                            return true;
+                        }}
+                        
+                        // 재시도 조건
+                        if (attemptCount < maxAttempts) {{
+                            setTimeout(focusSpecificInput, attemptCount < 5 ? 100 : 200);
+                        }} else {{
+                            console.log(`❌ 포커스 실패: 문제 ${{questionKey}} (최대 시도 도달)`);
+                        }}
+                        
+                        return false;
+                    }} catch (e) {{
+                        console.log(`포커스 에러: ${{e.message}}`);
+                        if (attemptCount < maxAttempts) {{
+                            setTimeout(focusSpecificInput, 200);
+                        }}
+                        return false;
+                    }}
+                }}
+                
+                // 즉시 실행
+                focusSpecificInput();
+                
+                // 추가 시도들 (다양한 타이밍)
+                setTimeout(focusSpecificInput, 50);
+                setTimeout(focusSpecificInput, 150);
+                setTimeout(focusSpecificInput, 300);
+                setTimeout(focusSpecificInput, 500);
+                
+                // DOM 변경 감지
+                const observer = new MutationObserver(function(mutations) {{
+                    let shouldFocus = false;
+                    
+                    mutations.forEach(function(mutation) {{
+                        if (mutation.type === 'childList') {{
+                            mutation.addedNodes.forEach(node => {{
+                                if (node.nodeType === 1) {{ // Element node
+                                    if (node.matches && node.matches('input[type="text"]')) {{
+                                        shouldFocus = true;
+                                    }} else if (node.querySelector) {{
+                                        const inputs = node.querySelectorAll('input[type="text"]');
+                                        if (inputs.length > 0) {{
+                                            shouldFocus = true;
+                                        }}
+                                    }}
+                                }}
+                            }});
+                        }}
+                    }});
+                    
+                    if (shouldFocus) {{
+                        console.log('DOM 변경 감지 - 포커스 재시도');
+                        setTimeout(focusSpecificInput, 50);
+                    }}
+                }});
+                
+                observer.observe(document.body, {{
+                    childList: true,
+                    subtree: true
+                }});
+                
+                // observer 정리 (메모리 누수 방지)
+                setTimeout(() => {{
+                    observer.disconnect();
+                    console.log('Observer 정리됨');
+                }}, 5000);
+            }})();
             </script>
         """, height=0)
-    
+        
         return user_input, submitted
 
 class GameResultUI:
