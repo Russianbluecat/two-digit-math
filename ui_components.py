@@ -102,7 +102,7 @@ class GamePlayUI:
     
     @staticmethod
     def render_answer_form(question_key: str) -> tuple:
-       """답안 입력 폼 렌더링"""
+        """답안 입력 폼 렌더링"""
         with st.form(key=f"question_{question_key}"):
             user_input = st.text_input(
                 "답을 입력하세요:", 
@@ -111,7 +111,7 @@ class GamePlayUI:
             )
             submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
     
-    # 간단한 포커스 스크립트
+        # 간단한 포커스 스크립트
         st.components.v1.html("""
             <script>
             setTimeout(function() {
@@ -123,7 +123,7 @@ class GamePlayUI:
             </script>
         """, height=0)
     
-    return user_input, submitted
+        return user_input, submitted
 
 class GameResultUI:
     """게임 결과 UI 컴포넌트"""
