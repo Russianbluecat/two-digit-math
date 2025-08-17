@@ -104,7 +104,7 @@ class GamePlayUI:
         with st.form(key=f"question_{question_key}"):
             user_input = st.text_input(
                 "답을 입력하세요:", 
-                key="answer_input",
+                key=f"answer_input_{question_key}"  , # ← 이렇게 수정!
                 placeholder="숫자를 입력하세요"
             )
             submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
