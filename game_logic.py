@@ -200,7 +200,11 @@ class GameSession:
     def get_final_results(self) -> dict:
         """최종 결과 반환"""
         total_time = time.time() - self.start_time if self.start_time else 0
-        accuracy = (self.correct_count / len(self.questions)) * 100
+        # accuracy = (self.correct_count / len(self.questions)) * 100
+        if len(self.questions) > 0:
+            accuracy = (self.correct_count / len(self.questions)) * 100
+        else:
+            accuracy = 0.0
         
         return {
             'total_questions': len(self.questions),
