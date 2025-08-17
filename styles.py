@@ -218,8 +218,9 @@ def get_auto_focus_script():
     setTimeout(focusInput, 100);
     setTimeout(focusInput, 300);
     setTimeout(focusInput, 500);
-    setTimeout(focusInput, 800);   // 추가
-    setTimeout(focusInput, 1200);  // 추가
-    setTimeout(focusInput, 1500);  // 추가    
+    setTimeout(focusInput, 800);
+    setTimeout(focusInput, 1000);
+    setTimeout(focusInput, 1500);
+    setTimeout(focusInput, 2000);
     </script>
     """
