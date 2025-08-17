@@ -6,6 +6,7 @@ from config import GameConfig, UIConfig
 from game_logic import performance_evaluator
 import streamlit.components.v1 as components
 
+
 class GameSetupUI:
     """게임 설정 UI 컴포넌트"""
     
