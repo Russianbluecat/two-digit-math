@@ -4,6 +4,7 @@ import streamlit as st
 from typing import Dict, Any, Optional
 from config import GameConfig, UIConfig
 from game_logic import performance_evaluator
+import streamlit.components.v1 as components
 
 class GameSetupUI:
     """게임 설정 UI 컴포넌트"""
@@ -100,16 +101,28 @@ class GamePlayUI:
     
     @staticmethod
     def render_answer_form(question_key: str) -> tuple:
-        """답안 입력 폼 렌더링"""
+       """답안 입력 폼 렌더링"""
         with st.form(key=f"question_{question_key}"):
             user_input = st.text_input(
                 "답을 입력하세요:", 
-                key=f"answer_input_{question_key}"  , # ← 이렇게 수정!
+                key=f"answer_input_{question_key}",
                 placeholder="숫자를 입력하세요"
             )
             submitted = st.form_submit_button("제출", use_container_width=True, type="primary")
-            
-        return user_input, submitted
+    
+    # 간단한 포커스 스크립트
+        st.components.v1.html("""
+            <script>
+            setTimeout(function() {
+                const inputs = (window.parent || window).document.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {
+                    inputs[inputs.length - 1].focus();
+                }
+            }, 100);
+            </script>
+        """, height=0)
+    
+    return user_input, submitted
 
 class GameResultUI:
     """게임 결과 UI 컴포넌트"""
